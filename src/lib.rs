@@ -38,8 +38,12 @@ fn highlight_code(code: &mdast::Code) -> Option<Html> {
     let ss = SyntaxSet::load_defaults_newlines();
     let ts = ThemeSet::load_defaults();
     let theme = &ts.themes["base16-ocean.dark"];
-    let syntax = ss.find_syntax_by_extension(&code.lang?)?;
-    let highlighted_code = syntect::html::highlighted_html_for_string(&code.value, &ss, &syntax, theme)
+    let lang = code.lang.clone()?;
+    let highlighted_code = syntect::html::highlighted_html_for_string(
+        &code.value, 
+        &ss, 
+        ss.find_syntax_by_extension(&lang)?,
+        theme)
         .expect("highlight failed");
     Some(html!{
         <code>{highlighted_code}</code>
