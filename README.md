@@ -13,7 +13,7 @@ To use katex, don't forget to add this stylesheet in your html:
 the example is included in `./examples/showcase`
 
 Here is an illustration:
-![](./img/showcase.png)
+![](./img/showcase.jpg)
 
 # TODO
 - implement note reference and image reference
