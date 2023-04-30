@@ -1,5 +1,6 @@
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
+use stylist::{Style, style};
 
 #[wasm_bindgen(module="/katex/katex.mjs")]
 extern "C" {
@@ -12,3 +13,4 @@ pub fn render_to_string(input: &str) -> String {
 }
 
 pub static KATEX_CSS: &'static str = include_str!("../katex/katex.min.css");
+

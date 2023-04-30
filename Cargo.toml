@@ -9,10 +9,10 @@ edition = "2021"
 markdown = "1.0.0-alpha.8"
 yew = "0.20.0"
 
-wasm-bindgen = "0.2.84"
+wasm-bindgen = "=0.2.84"
 wasm-logger = "0.2.0"
 log= "0.4.17"
 
-stylist = {version="0.12.0", features=["parser"]}
-syntect = "5.0.0"
+stylist = {version="0.12.0", features=["yew_integration", "parser"]}
+syntect = { version = "5.0.0", default-features = false, features = ["default-fancy"]}
 web-sys = "0.3.61"

@@ -7,6 +7,8 @@ use syntect::parsing::SyntaxSet;
 use syntect::highlighting::ThemeSet;
 use std::collections::HashMap;
 use web_sys::MouseEvent;
+use log::info;
+use stylist::yew::use_style;
 
 pub use syntect;
 pub use markdown::Constructs;
@@ -40,16 +42,17 @@ fn render_table(children: &Vec<mdast::Node>, align: &Vec<mdast::AlignKind>) -> H
 fn highlight_code(code: &mdast::Code) -> Option<Html> {
     let ss = SyntaxSet::load_defaults_newlines();
     let ts = ThemeSet::load_defaults();
-    let theme = &ts.themes["base16-ocean.dark"];
+    let theme = &ts.themes["base16-ocean.light"];
     let lang = code.lang.clone()?;
+    info!("{:?}", ss);
+    info!("{}", lang);
     let highlighted_code = syntect::html::highlighted_html_for_string(
         &code.value, 
         &ss, 
-        ss.find_syntax_by_extension(&lang)?,
-        theme)
-        .expect("highlight failed");
+        ss.find_syntax_by_token(&lang)?,
+        theme).ok()?;
     Some(html!{
-        <code>{highlighted_code}</code>
+        <code>{raw_html!(highlighted_code)}</code>
     })
 }
 
@@ -108,7 +111,7 @@ fn render_node(node: &mdast::Node, onclick: &Option<Callback<MarkdownMouseEvent>
                 }
             }
             else{
-                raw_html!(n.value.clone())
+                html!{ {n.value.clone()} }
             }
         },
         mdast::Node::Heading(n) => render_header(n.depth, render_children!(n).collect::<Html>()),
@@ -146,7 +149,7 @@ fn render_node(node: &mdast::Node, onclick: &Option<Callback<MarkdownMouseEvent>
 }
 
 pub struct Markdown {
-    style: Style,
+    // style: Style,
     cached_ast: HashMap<String, mdast::Node>,
 }
 
@@ -159,9 +162,9 @@ pub struct MarkdownMouseEvent {
 
 #[derive(PartialEq, Properties)]
 pub struct Props {
-    source: String,
-    constructs: Option<Constructs>,
-    onclick: Option<Callback<MarkdownMouseEvent>>,
+    pub source: String,
+    pub constructs: Option<Constructs>,
+    pub onclick: Option<Callback<MarkdownMouseEvent>>,
     // syntax_highlighting_theme: Option<syntect::highlighting::Theme>,
 }
 
@@ -180,24 +183,29 @@ impl Component for Markdown {
             mdx_expression_parse: None,
             mdx_esm_parse: None,
         };
+        info!("katex css length: {}", katex::KATEX_CSS.len());
         let ast = markdown::to_mdast(&content, &options)
             .expect("unable to parse markdown");
-        let style = Style::new(katex::KATEX_CSS).expect("unable to get katex css");
+        // let empty_style = Style::new("").unwrap();
+        // FIXME
+        // let style = Style::new(katex::KATEX_CSS).expect("unable to read css");
+        // let style = use_style!(include_str!("../katex/katex.css"));
 
         let mut cached_ast = HashMap::new();
         cached_ast.insert(content, ast);
         Self {
-            cached_ast: HashMap::new(),
-            style,
+            cached_ast,
+            // style,
         }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let katex_css_class_name = self.style.get_class_name().to_string();
+        // let katex_css_class_name = self.style.get_class_name().to_string();
         let ast = self.cached_ast.get(&ctx.props().source)
             .expect("this markdown text was never compiled");
+        info!("{:?}", ast);
         html!{
-            <div class={&katex_css_class_name}>{render_node(ast, &ctx.props().onclick)}</div>
+            <div>{render_node(ast, &ctx.props().onclick)}</div>
         }
     }
 

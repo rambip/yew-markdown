@@ -811,6 +811,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "showcase"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "wasm-bindgen",
+ "wasm-logger",
+ "yew",
+ "yew-markdown",
+]
+
+[[package]]
 name = "slab"
 version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
