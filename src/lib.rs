@@ -1,9 +1,15 @@
 mod katex;
-use markdown::{mdast, ParseOptions};
+use markdown::mdast;
+pub use markdown::unist::Point;
 use yew::prelude::*;
 use stylist::Style;
 use syntect::parsing::SyntaxSet;
 use syntect::highlighting::ThemeSet;
+use std::collections::HashMap;
+use web_sys::MouseEvent;
+
+pub use syntect;
+pub use markdown::Constructs;
 
 macro_rules! raw_html {
     ($arg:expr) => {
@@ -11,10 +17,7 @@ macro_rules! raw_html {
     }
 }
 
-pub struct Markdown {
-    node: mdast::Node,
-    style: Style,
-}
+
 
 fn render_header(depth: u8, content: Html) -> Html {
     match depth {
@@ -50,9 +53,9 @@ fn highlight_code(code: &mdast::Code) -> Option<Html> {
     })
 }
 
-fn render_node(node: &mdast::Node) -> Html {
+fn render_node(node: &mdast::Node, onclick: &Option<Callback<MarkdownMouseEvent>>) -> Html {
     macro_rules! render_children {
-        ($arg:expr) => ($arg.children.iter().map(render_node))
+        ($arg:expr) => ($arg.children.iter().map(|x| render_node(x, onclick)))
     }
     match node {
         mdast::Node::Math(m) => raw_html!(katex::render_to_string(&m.value)),
@@ -87,7 +90,27 @@ fn render_node(node: &mdast::Node) -> Html {
         mdast::Node::Strong(n) => html!{
             <b>{for render_children!(n)}</b>
         },
-        mdast::Node::Text(n) => raw_html!(n.value.clone()),
+        mdast::Node::Text(n) => {
+            let position = n.position.as_ref().expect("no position on syntax tree").clone();
+
+            if let Some(onclick) = onclick {
+                let onclick = onclick.clone();
+                let callback = Callback::from(move |x| {
+                    let click_event = MarkdownMouseEvent {
+                        mouse_event: x,
+                        start_position: position.start.clone(),
+                        end_position: position.end.clone(),
+                    };
+                    onclick.emit(click_event)
+                });
+                html!{
+                    <div onclick={callback}>{n.value.clone()}</div>
+                }
+            }
+            else{
+                raw_html!(n.value.clone())
+            }
+        },
         mdast::Node::Heading(n) => render_header(n.depth, render_children!(n).collect::<Html>()),
         mdast::Node::Table(n) => render_table(&n.children, &n.align),
         mdast::Node::ThematicBreak(_) => html!{<hr/>},
@@ -122,32 +145,79 @@ fn render_node(node: &mdast::Node) -> Html {
     }
 }
 
-
-impl Markdown {
-    pub fn new_from_text(content: &str, options: &ParseOptions) -> Result<Self, String> {
-        let style = Style::new(katex::KATEX_CSS).expect("unable to get katex css");
-        Ok(Self {
-            node : markdown::to_mdast(content, options)?,
-            style,
-        })
-    }
-
+pub struct Markdown {
+    style: Style,
+    cached_ast: HashMap<String, mdast::Node>,
 }
+
+#[derive(Clone)]
+pub struct MarkdownMouseEvent {
+    mouse_event: MouseEvent,
+    start_position: Point,
+    end_position: Point,
+}
+
+#[derive(PartialEq, Properties)]
+pub struct Props {
+    source: String,
+    constructs: Option<Constructs>,
+    onclick: Option<Callback<MarkdownMouseEvent>>,
+    // syntax_highlighting_theme: Option<syntect::highlighting::Theme>,
+}
+
 
 impl Component for Markdown {
     type Message = ();
 
-    type Properties = ();
+    type Properties = Props;
 
-    fn create(_ctx: &Context<Self>) -> Self {
-        todo!()
+    fn create(ctx: &Context<Self>) -> Self {
+        let content = ctx.props().source.clone();
+        let options = markdown::ParseOptions{
+            constructs: ctx.props().constructs.clone().unwrap_or(markdown::Constructs::default()),
+            gfm_strikethrough_single_tilde: true,
+            math_text_single_dollar: true,
+            mdx_expression_parse: None,
+            mdx_esm_parse: None,
+        };
+        let ast = markdown::to_mdast(&content, &options)
+            .expect("unable to parse markdown");
+        let style = Style::new(katex::KATEX_CSS).expect("unable to get katex css");
+
+        let mut cached_ast = HashMap::new();
+        cached_ast.insert(content, ast);
+        Self {
+            cached_ast: HashMap::new(),
+            style,
+        }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let katex_css_class_name = self.style.get_class_name().to_string();
+        let ast = self.cached_ast.get(&ctx.props().source)
+            .expect("this markdown text was never compiled");
         html!{
-            <div class={&katex_css_class_name}>{render_node(&self.node)}</div>
+            <div class={&katex_css_class_name}>{render_node(ast, &ctx.props().onclick)}</div>
+        }
+    }
+
+    fn changed(&mut self, ctx: &Context<Self>, old_props: &Props) -> bool {
+        if ctx.props() == old_props {
+            false
+        }
+        else {
+            let content = ctx.props().source.clone();
+            let options = markdown::ParseOptions{
+                constructs: ctx.props().constructs.clone().unwrap_or(markdown::Constructs::default()),
+                gfm_strikethrough_single_tilde: true,
+                math_text_single_dollar: true,
+                mdx_expression_parse: None,
+                mdx_esm_parse: None,
+            };
+        let ast = markdown::to_mdast(&content, &options)
+            .expect("unable to parse markdown");
+            self.cached_ast.insert(content, ast);
+            true
         }
     }
 }
-
