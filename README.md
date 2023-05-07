@@ -29,7 +29,7 @@ You just need trunk and a web-browser to test them.
 the example is included in `./examples/showcase`
 
 Here is an illustration:
-![](./img/showcase.png)
+![](./img/showcase.jpg)
 
 ## Performance
 These are just some random tests to see the possible performance issues
