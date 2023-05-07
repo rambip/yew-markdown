@@ -1,34 +1,40 @@
 use yew::prelude::*;
-use yew_markdown::{Markdown, Constructs};
+use yew_markdown::Markdown;
 
 static MARKDOWN_SOURCE : &str = r#"
-# Code
+## Code
 ```rust
 fn main() {
     println!("hello world !")
 }
 ```
 
-# Math
+## Math
 $1+1=2$
 
 $$\int_0^{+\infty}\dfrac{\sin(t)}{t}\,dt=\dfrac{\sqrt{\pi}}{2}$$
 
-# Footnote
-> Hey !
 
+## Links and images
+for a markdown cheatsheet, see https://commonmark.org/help/
+
+[the markdown engine](https://github.com/wooorm/markdown-rs)
+![](https://raw.githubusercontent.com/wooorm/markdown-rs/8924580/media/logo-monochromatic.svg?sanitize=true)
+
+## Style
+1) **bold**
+2) *italics*
+
+> Hey, I am a quote !
+> - I don't like numbers
+
+3) ~strikethrough~
 "#;
 
 #[function_component(App)]
 fn app() -> Html {
-    let constructs = Constructs{
-        math_text: true,
-        math_flow: true,
-        frontmatter: true,
-        ..Constructs::default()
-    };
     html! {
-        <Markdown source={MARKDOWN_SOURCE} constructs={constructs}/>
+        <Markdown src={MARKDOWN_SOURCE}/>
     }
 }
 

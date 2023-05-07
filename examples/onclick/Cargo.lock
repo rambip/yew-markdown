@@ -513,6 +513,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "interactive-markdown"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "wasm-bindgen",
+ "wasm-logger",
+ "yew",
+ "yew-markdown",
+]
+
+[[package]]
 name = "itertools"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -894,17 +905,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "showcase"
-version = "0.1.0"
-dependencies = [
- "log",
- "wasm-bindgen",
- "wasm-logger",
- "yew",
- "yew-markdown",
 ]
 
 [[package]]

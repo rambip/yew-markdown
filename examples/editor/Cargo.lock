@@ -605,6 +605,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "markdown-editor"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "wasm-bindgen",
+ "wasm-logger",
+ "web-sys",
+ "yew",
+ "yew-markdown",
+]
+
+[[package]]
 name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -894,17 +906,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "showcase"
-version = "0.1.0"
-dependencies = [
- "log",
- "wasm-bindgen",
- "wasm-logger",
- "yew",
- "yew-markdown",
 ]
 
 [[package]]
