@@ -31,11 +31,20 @@ the example is included in `./examples/showcase`
 Here is an illustration:
 ![](./img/showcase.jpg)
 
+see [here](https://rambip.github.io/yew-markdown/showcase)
+
 ## Performance
 These are just some random tests to see the possible performance issues
 
+see [here](https://rambip.github.io/yew-markdown/performance)
+
 ## Editor
 Of course, an example of a basic markdown editor is implemented to show whan is currently supported
+
+see [here](https://rambip.github.io/yew-markdown/editor)
+
+## Interactivity
+see [here](https://rambip.github.io/yew-markdown/onclick)
 
 
 # ROADMAP
