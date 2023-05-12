@@ -1384,6 +1384,7 @@ dependencies = [
  "katex",
  "log",
  "markdown",
+ "regex",
  "stylist",
  "syntect",
  "wasm-bindgen",

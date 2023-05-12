@@ -38,11 +38,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1683475240,
-        "narHash": "sha256-sy6MYoCaIZsOenYplbzVXI4Ce9Bp/vIOpuFa97+a6wc=",
+        "lastModified": 1683777345,
+        "narHash": "sha256-V2p/A4RpEGqEZussOnHYMU6XglxBJGCODdzoyvcwig8=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "e040aab15638aaf8d0786894851a2b1ca09a7baf",
+        "rev": "635a306fc8ede2e34cb3dd0d6d0a5d49362150ed",
         "type": "github"
       },
       "original": {
@@ -141,11 +141,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1683549403,
-        "narHash": "sha256-YmOsEesoT++bXSRef6pRNEhBzKi/+K5oIsLMB2V8qxo=",
+        "lastModified": 1683549552,
+        "narHash": "sha256-Kg0OYEBcXnpUhrtTPoRjT9MyU2SZ+G4Zrbldd+DNylQ=",
         "owner": "rambip",
         "repo": "wasm-tooling",
-        "rev": "6878c333a0429b9c215383342873b6a4c97fdf34",
+        "rev": "0104a52287a255d1da65fb0bd687b7900d7a082c",
         "type": "github"
       },
       "original": {

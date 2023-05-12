@@ -18,3 +18,4 @@ stylist = {version="0.12.0", features = ["yew_integration", "parser"]}
 syntect = { version = "5.0.0", default-features = false, features = ["default-fancy"]}
 web-sys = "0.3.61"
 katex = {version="0.4", default-features=false, features=["wasm-js"]}
+regex = {version="1.8.1"}

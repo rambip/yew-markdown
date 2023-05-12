@@ -513,17 +513,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "interactive-markdown"
-version = "0.1.0"
-dependencies = [
- "log",
- "wasm-bindgen",
- "wasm-logger",
- "yew",
- "yew-markdown",
-]
-
-[[package]]
 name = "itertools"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -667,6 +656,17 @@ name = "percent-encoding"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "478c572c3d73181ff3c2539045f6eb99e5491218eae919370993b890cdbdd98e"
+
+[[package]]
+name = "performance"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "wasm-bindgen",
+ "wasm-logger",
+ "yew",
+ "yew-markdown",
+]
 
 [[package]]
 name = "pin-project"
@@ -1384,6 +1384,7 @@ dependencies = [
  "katex",
  "log",
  "markdown",
+ "regex",
  "stylist",
  "syntect",
  "wasm-bindgen",

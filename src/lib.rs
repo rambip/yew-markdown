@@ -1,4 +1,3 @@
-// mod katex;
 use yew::{prelude::*, virtual_dom::AttrValue};
 use markdown::mdast;
 use std::collections::HashMap;
@@ -8,7 +7,11 @@ use stylist::Style;
 
 mod render;
 use render::{RenderContext, render_node};
+
 mod style;
+
+mod links;
+use links::preprocess_wikilinks;
 
 mod mouse_event;
 pub use mouse_event::MarkdownMouseEvent;
@@ -45,9 +48,22 @@ pub struct Props {
     pub onclick: Option<Callback<MarkdownMouseEvent>>,
     pub css: Option<AttrValue>,
     pub theme_name: Option<String>,
+    pub wikilink_format: Option<Callback<(String, String), String>>,
 
     #[prop_or(false)]
     pub caching: bool,
+}
+
+fn parse(source: &str, parse_options: &markdown::ParseOptions, 
+         wiki_link_format: Option<Callback<(String, String),String>>
+     ) -> mdast::Node {
+    let modified_source = if let Some(f)=wiki_link_format {
+        preprocess_wikilinks(source, |x,y| f.emit((x,y)))
+    }
+    else{
+        source.into()
+    };
+    markdown::to_mdast(&modified_source, parse_options).unwrap()
 }
 
 
@@ -117,7 +133,7 @@ impl Component for Markdown {
 
         Self {
             cached_ast: HashMap::new(),
-            ast: markdown::to_mdast(&ctx.props().src, &parse_options).unwrap(),
+            ast: parse(&ctx.props().src, &parse_options, ctx.props().wikilink_format.clone()),
             render_context,
             style,
             parse_options,
