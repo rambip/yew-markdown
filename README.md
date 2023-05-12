@@ -1,25 +1,31 @@
 # Goal
-creating a simple library to render markdown with yew.
-The best rust libraries are involved !
+Creating a simple library to render markdown with yew.
+The best rust crates are involved !
 
 # Usage
-To use katex, don't forget to add this stylesheet in your html:
+Add yew-markdown to your project:
+```toml
+# Cargo.toml
+yew-markdown = {git="https://github.com/rambip/yew-markdown"}
+```
 
-If you use this library with trunk, add this to your `index.html`:
+If you just need to render basic markdown, you can do
+
+```rust
+use yew_markdown::Markdown;
+...
+    html!{
+        <Markdown src={"# Markdown power !"}/>
+    }
+```
+
+You also have to include this css file (if you use trunk, just add this line in your index.html):
 
 ```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css" integrity="sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI" crossorigin="anonymous">
 ```
 Otherwise, math will not be rendered properly
 
-Then, you can use it as a simple yew component
-
-```rust
-use yew_markdown::Markdown
-html!{
-    <Markdown src={"# Markdown power !"}/>
-}
-```
 
 # Examples
 Take a look at the different examples !
@@ -48,7 +54,5 @@ see [here](https://rambip.github.io/yew-markdown/onclick)
 
 
 # ROADMAP
-- implement tables with right/left/center align
 - implement note reference and image reference
-- disable unused features from used crates
 - publish as a crate as soon as it is stable

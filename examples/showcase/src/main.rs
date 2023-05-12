@@ -10,8 +10,11 @@ fn main() {
 ```
 
 ## Math
-$1+1=2$
+1) $1+1=2$
 
+2) $e^{i\pi}+1=0$
+
+3)
 $$\int_0^{+\infty}\dfrac{\sin(t)}{t}\,dt=\dfrac{\sqrt{\pi}}{2}$$
 
 
@@ -22,13 +25,14 @@ for a markdown cheatsheet, see https://commonmark.org/help/
 ![](https://raw.githubusercontent.com/wooorm/markdown-rs/8924580/media/logo-monochromatic.svg?sanitize=true)
 
 ## Style
-1) **bold**
-2) *italics*
+| unstyled | styled    |
+| :-----:  | ------    |
+| bold     | **bold**  |
+| italics  | *italics* |
+| strike   | ~strike~  |
 
 > Hey, I am a quote !
 > - I don't like numbers
-
-3) ~strikethrough~
 "#;
 
 #[function_component(App)]
