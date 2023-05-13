@@ -9,7 +9,8 @@ mod parser;
 use parser::{parse, new_parse_options};
 
 mod render;
-use render::{RenderContext, render_node, LinkProps};
+use render::{RenderContext, render_node};
+pub use render::LinkProps;
 
 mod style;
 
