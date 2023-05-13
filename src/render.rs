@@ -6,6 +6,7 @@ use syntect::highlighting::{ThemeSet, Theme};
 
 use super::mouse_event;
 
+#[derive(Clone)]
 pub struct LinkProps {
     pub name: AttrValue,
     pub alias: AttrValue,
