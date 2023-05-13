@@ -714,7 +714,7 @@ function initSync(module) {
 
 async function init(input) {
     if (typeof input === 'undefined') {
-        input = new URL('markdown-editor-482d100f6e21fd89_bg.wasm', import.meta.url);
+        input = new URL('markdown-editor-991c4e837eb7e535_bg.wasm', import.meta.url);
     }
     const imports = getImports();
 
