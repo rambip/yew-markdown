@@ -6,11 +6,10 @@ use syntect::highlighting::{ThemeSet, Theme};
 
 use super::mouse_event;
 
-#[allow(dead_code)]
 pub struct LinkProps {
-    name: AttrValue,
-    alias: AttrValue,
-    title: Option<AttrValue>,
+    pub name: AttrValue,
+    pub alias: AttrValue,
+    pub title: Option<AttrValue>,
 }
 
 /// all the context needed to render markdown:
