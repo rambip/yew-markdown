@@ -15,21 +15,16 @@ pub struct MarkdownMouseEvent {
 /// `make_markdown_mouse_event_callback(onclick, position)` 
 /// composes the callback `onclick` with a converter
 /// to get a usable callback for the user
-pub fn make_callback(onclick: &Option<Callback<MarkdownMouseEvent>>, position: &Option<markdown::unist::Position>) 
+pub fn make_callback(onclick: &Callback<MarkdownMouseEvent>, position: &Option<markdown::unist::Position>) 
     -> Callback<MouseEvent> {
-    let position = position.clone().expect("unable to know from which position the markdown tree was build");
-    let onclick = onclick.clone();
-    match onclick {
-        Some(callback) =>{
-            Callback::from(move |x| {
-                let click_event = MarkdownMouseEvent {
-                    mouse_event: x,
-                    start_position: position.start.clone(),
-                    end_position: position.end.clone(),
-                };
-                callback.emit(click_event)
-            })
-        },
-        None => Callback::from(|_| ())
-    }
+        let position = position.clone().expect("unable to know from which position the markdown tree was build");
+        let onclick = onclick.clone();
+        Callback::from(move |x| {
+            let click_event = MarkdownMouseEvent {
+                mouse_event: x,
+                start_position: position.start.clone(),
+                end_position: position.end.clone(),
+            };
+            onclick.emit(click_event)
+    })
 }

@@ -1,10 +1,17 @@
 use yew::{Html, html, Callback, virtual_dom::AttrValue};
 use katex;
-use markdown::mdast::{*, Node};
+use markdown::mdast::*;
 use syntect::parsing::SyntaxSet;
 use syntect::highlighting::{ThemeSet, Theme};
 
 use super::mouse_event;
+
+#[allow(dead_code)]
+pub struct LinkProps {
+    name: AttrValue,
+    alias: AttrValue,
+    title: Option<AttrValue>,
+}
 
 /// all the context needed to render markdown:
 /// - a `syntax_set` and a `theme` for syntax highlighting
@@ -12,12 +19,14 @@ use super::mouse_event;
 pub struct RenderContext {
     syntax_set: SyntaxSet,
     theme: Theme,
-    onclick: Option<Callback<mouse_event::MarkdownMouseEvent>>,
+    onclick: Callback<mouse_event::MarkdownMouseEvent>,
+    render_links: Callback<LinkProps, Html>,
 }
 
 impl RenderContext {
     pub fn new(theme_name: Option<String>, 
-               onclick: Option<Callback<mouse_event::MarkdownMouseEvent>>) -> Self {
+               onclick: Option<Callback<mouse_event::MarkdownMouseEvent>>,
+               render_links: Option<Callback<LinkProps, Html>>) -> Self {
 
         let theme_set = ThemeSet::load_defaults();
         let theme_name = theme_name
@@ -31,7 +40,8 @@ impl RenderContext {
         RenderContext {
             syntax_set,
             theme,
-            onclick,
+            onclick : onclick.unwrap_or(Callback::from(|_| ())),
+            render_links: render_links.unwrap_or(Callback::from(render_links_default)),
         }
     }
 }
@@ -123,6 +133,12 @@ fn render_table_row<'a> (row: &'a TableRow, align: &Vec<AlignKind>, context: &Re
     }
 }
 
+fn render_links_default(link: LinkProps) -> Html {
+    html!{
+        <a href={link.name}>{link.alias}</a>
+    }
+}
+
 
 /// `render_node(node, context)` returns an html view
 /// of the markdown abstract syntax tree `node`.
@@ -191,10 +207,14 @@ pub fn render_node<'a>(node: &'a Node, context: &RenderContext) -> Html {
             <img src={n.url.clone()} alt={n.alt.clone()}/>
         },
         // TODO: what to do about `n.title` ?
-        Node::Link(n) => html!{
-            <a href={n.url.clone()}>
-            {for render_children!(n)}
-            </a>
+        Node::Link(n) => match &n.children[..] {
+            [Node::Text(t)] => context.render_links.emit(LinkProps{
+                name : n.url.clone().into(),
+                alias : t.value.clone().into(),
+                title: n.title.clone().map(|x| x.into()),
+            }),
+            _ => html_error!("markdown content in a link is not allowed"),
+
         },
 
         Node::InlineCode(n) => html!{
@@ -219,9 +239,9 @@ pub fn render_node<'a>(node: &'a Node, context: &RenderContext) -> Html {
             </div>
             ),
         Node::InlineMath(m) => html!(
-            <div class={"math-inline"} onclick={mouse_event::make_callback(&context.onclick, &m.position)}>
+            <span class={"math-inline"} onclick={mouse_event::make_callback(&context.onclick, &m.position)}>
             {render_maths(&m.value).unwrap_or(html_error!{"invalid math"})}
-            </div>
+            </span>
             ),
 
         Node::Table(t) => {
