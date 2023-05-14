@@ -1,5 +1,6 @@
 use markdown::{Constructs, ParseOptions, mdast};
 use regex::Regex;
+use log::info;
 
 pub fn new_parse_options(constructs: Option<markdown::Constructs>) -> ParseOptions {
     let default_constructs = Constructs {
@@ -73,7 +74,9 @@ fn preprocess_wikilinks(source: &str) -> String {
 /// hack to allow $$x$$ to be parsed as `Node::Math` and not `Node::MathInline`
 fn preprocess_math(source: &str) -> String {
     let math_regex = Regex::new(r"\$\$").unwrap();
-    math_regex.replace_all(source, "\n$1\n").to_string()
+    let res = math_regex.replace_all(source, "\n$$$$\n").to_string();
+    info!("{}", res);
+    res
 }
 
 /// hack to add hardbreaks on every line

@@ -3,6 +3,11 @@ use yew::AttrValue;
 
 fn get_style() -> Style {
     style!(r#"
+         /* for the markdown container */
+         & {
+             width: 100%
+         }
+
          blockquote{ 
              margin: 10px; border-left : 5px solid grey; padding:5px
          } 
@@ -23,13 +28,14 @@ fn get_style() -> Style {
              background-color: #eee; font-weight: bold; 
          }
 
-            div.math-flow {
-                display: table; margin: 0 auto
-            }
+        div.math-flow {
+            display: table; margin: 0 auto
+        }
 
-            span.markdown-error {
-                background-color: red;
-            }"#
+        span.markdown-error {
+            background-color: red;
+        }
+        "#
     ).expect("unable to mount style")
 }
 

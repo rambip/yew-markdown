@@ -14,13 +14,22 @@ pub struct LinkProps {
 }
 
 /// all the context needed to render markdown:
-/// - a `syntax_set` and a `theme` for syntax highlighting
-/// - a callback `onclick` to add interactivity
+/// - `syntax_set`, `theme`, `onclick`, `render_links`, `katex_opts`
 pub struct RenderContext {
+    /// syntax used for syntax highlighting
     syntax_set: SyntaxSet,
+
+    /// theme used for syntax highlighting
     theme: Theme,
+
+    /// callback to add interactivity to the rendered markdown
     onclick: Callback<mouse_event::MarkdownMouseEvent>,
+
+    /// callback used to render links
     render_links: Callback<LinkProps, Html>,
+
+    /// options to render maths
+    katex_opts: katex::Opts,
 }
 
 impl RenderContext {
@@ -37,9 +46,15 @@ impl RenderContext {
 
         let syntax_set = SyntaxSet::load_defaults_newlines();
 
+        let katex_opts = katex::Opts::builder()
+            .display_mode(true)
+            .build()
+            .unwrap();
+
         RenderContext {
             syntax_set,
             theme,
+            katex_opts,
             onclick : onclick.unwrap_or(Callback::from(|_| ())),
             render_links: render_links.unwrap_or(Callback::from(render_links_default)),
         }
@@ -66,8 +81,8 @@ macro_rules! html_error {
 
 /// `render_maths(content)` returns a html node
 /// with the latex content `content` compiled inside
-fn render_maths(content: &str) -> Option<Html>{
-    katex::render(content)
+fn render_maths(content: &str, context: &RenderContext) -> Option<Html>{
+    katex::render_with_opts(content, context.katex_opts)
         .ok()
         .map(|x| raw_html!(x))
 }
@@ -235,12 +250,14 @@ pub fn render_node<'a>(node: &'a Node, context: &RenderContext) -> Html {
 
         Node::Math(m) => html!(
             <div class={"math-flow"} onclick={mouse_event::make_callback(&context.onclick, &m.position)}>
-            {render_maths(&m.value).unwrap_or(html_error!{"invalid math"})}
+            {render_maths(&m.value, context)
+                .unwrap_or(html_error!{"invalid math"})}
             </div>
             ),
         Node::InlineMath(m) => html!(
             <span class={"math-inline"} onclick={mouse_event::make_callback(&context.onclick, &m.position)}>
-            {render_maths(&m.value).unwrap_or(html_error!{"invalid math"})}
+            {render_maths(&m.value, context)
+                .unwrap_or(html_error!{"invalid math"})}
             </span>
             ),
 
