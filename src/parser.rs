@@ -81,7 +81,7 @@ fn preprocess_math(source: &str) -> String {
 
 /// hack to add hardbreaks on every line
 fn preprocess_hardbreaks(source: &str) -> String {
-    source.replace("\n", "\n  ")
+    source.replace("\n", "  \n")
 }
 
 pub fn parse(source: &str, parse_options: &markdown::ParseOptions, wikilinks: bool) -> mdast::Node {
