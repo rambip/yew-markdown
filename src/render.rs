@@ -82,7 +82,7 @@ macro_rules! html_error {
 /// `render_maths(content)` returns a html node
 /// with the latex content `content` compiled inside
 fn render_maths(content: &str, context: &RenderContext) -> Option<Html>{
-    katex::render_with_opts(content, context.katex_opts)
+    katex::render_with_opts(content, &context.katex_opts)
         .ok()
         .map(|x| raw_html!(x))
 }
