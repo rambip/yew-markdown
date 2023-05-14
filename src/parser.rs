@@ -25,6 +25,8 @@ pub fn new_parse_options(constructs: Option<markdown::Constructs>) -> ParseOptio
         label_start_link: true,
         label_end: true,
         gfm_table: true,
+        // see `preprocess_hardbreaks`
+        hard_break_trailing: true,
 
         // TODO
         definition: false,
@@ -42,7 +44,6 @@ pub fn new_parse_options(constructs: Option<markdown::Constructs>) -> ParseOptio
         // not supported by default
         code_indented: false,
         hard_break_escape: false,
-        hard_break_trailing: false,
         html_text: false,
 
     };
@@ -55,11 +56,11 @@ pub fn new_parse_options(constructs: Option<markdown::Constructs>) -> ParseOptio
     }
 }
 
-pub fn preprocess_wikilinks(source: &str) -> String {
+fn preprocess_wikilinks(source: &str) -> String {
     let wiki_regex_double = Regex::new(r"\[\[(.*?)\|(.*?)\]\]").unwrap();
     let wiki_regex_simple = Regex::new(r"\[\[(.*?)\]\]").unwrap();
     let first_replacement = wiki_regex_double
-        .replace_all(source, "[$2]($1 wiki)")
+        .replace_all(source, "[$2]($1 \"wiki\")")
         .to_string();
 
     let second_replacement = wiki_regex_simple
@@ -69,12 +70,24 @@ pub fn preprocess_wikilinks(source: &str) -> String {
     second_replacement
 }
 
+/// hack to allow $$x$$ to be parsed as `Node::Math` and not `Node::MathInline`
+fn preprocess_math(source: &str) -> String {
+    let math_regex = Regex::new(r"\$\$").unwrap();
+    math_regex.replace_all(source, "\n$1\n").to_string()
+}
+
+/// hack to add hardbreaks on every line
+fn preprocess_hardbreaks(source: &str) -> String {
+    source.replace("\n", "\n  ")
+}
+
 pub fn parse(source: &str, parse_options: &markdown::ParseOptions, wikilinks: bool) -> mdast::Node {
+    let mut source = source.to_string();
     if wikilinks {
-        markdown::to_mdast(&preprocess_wikilinks(source), parse_options).expect("unable to parse markdown")
+        source = preprocess_wikilinks(&source);
     }
-    else {
-        markdown::to_mdast(source, parse_options).expect("unable to parse markdown")
-    }
+    source = preprocess_math(&source);
+    source = preprocess_hardbreaks(&source);
+    markdown::to_mdast(&source, parse_options).expect("unable to parse markdown")
 }
 
