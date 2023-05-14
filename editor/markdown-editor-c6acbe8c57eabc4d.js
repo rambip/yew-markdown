@@ -473,6 +473,20 @@ function getImports() {
     imports.wbg.__wbg_setAttribute_79c9562d32d05e66 = function() { return handleError(function (arg0, arg1, arg2, arg3, arg4) {
         getObject(arg0).setAttribute(getStringFromWasm0(arg1, arg2), getStringFromWasm0(arg3, arg4));
     }, arguments) };
+    imports.wbg.__wbg_instanceof_Event_4637acc4ed1080b8 = function(arg0) {
+        let result;
+        try {
+            result = getObject(arg0) instanceof Event;
+        } catch {
+            result = false;
+        }
+        const ret = result;
+        return ret;
+    };
+    imports.wbg.__wbg_target_b629c177f9bee3da = function(arg0) {
+        const ret = getObject(arg0).target;
+        return isLikeNone(ret) ? 0 : addHeapObject(ret);
+    };
     imports.wbg.__wbg_bubbles_80a0700df9c59aee = function(arg0) {
         const ret = getObject(arg0).bubbles;
         return ret;
@@ -546,6 +560,16 @@ function getImports() {
     imports.wbg.__wbg_host_33f0224f975dc46a = function(arg0) {
         const ret = getObject(arg0).host;
         return addHeapObject(ret);
+    };
+    imports.wbg.__wbg_instanceof_HtmlTextAreaElement_4bc39f9d861a6832 = function(arg0) {
+        let result;
+        try {
+            result = getObject(arg0) instanceof HTMLTextAreaElement;
+        } catch {
+            result = false;
+        }
+        const ret = result;
+        return ret;
     };
     imports.wbg.__wbg_value_00fb0fdc46959169 = function(arg0, arg1) {
         const ret = getObject(arg1).value;
@@ -647,12 +671,12 @@ function getImports() {
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };
-    imports.wbg.__wbindgen_closure_wrapper2489 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 1017, __wbg_adapter_20);
+    imports.wbg.__wbindgen_closure_wrapper2515 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 1041, __wbg_adapter_20);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper2901 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 1185, __wbg_adapter_23);
+    imports.wbg.__wbindgen_closure_wrapper2932 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 1209, __wbg_adapter_23);
         return addHeapObject(ret);
     };
 
@@ -690,7 +714,7 @@ function initSync(module) {
 
 async function init(input) {
     if (typeof input === 'undefined') {
-        input = new URL('onclick-7a4d01c90dea00a8_bg.wasm', import.meta.url);
+        input = new URL('markdown-editor-c6acbe8c57eabc4d_bg.wasm', import.meta.url);
     }
     const imports = getImports();
 
