@@ -19,10 +19,9 @@ $$\int_0^{+\infty}\dfrac{\sin(t)}{t}\,dt=\dfrac{\sqrt{\pi}}{2}$$
 
 
 ## Links and images
-for a markdown cheatsheet, see https://commonmark.org/help/
-
-[the markdown engine](https://github.com/wooorm/markdown-rs)
 ![](https://raw.githubusercontent.com/wooorm/markdown-rs/8924580/media/logo-monochromatic.svg?sanitize=true)
+
+for markdown documentation, see https://github.com/wooorm/markdown or [here](https://commonmark.org/help/)
 
 ## Style
 | unstyled | styled    |
@@ -43,6 +42,5 @@ fn app() -> Html {
 }
 
 fn main() {
-    wasm_logger::init(wasm_logger::Config::default());
     yew::Renderer::<App>::new().render();
 }

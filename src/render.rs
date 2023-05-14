@@ -27,9 +27,6 @@ pub struct RenderContext {
 
     /// callback used to render links
     render_links: Callback<LinkProps, Html>,
-
-    /// options to render maths
-    katex_opts: katex::Opts,
 }
 
 impl RenderContext {
@@ -46,15 +43,9 @@ impl RenderContext {
 
         let syntax_set = SyntaxSet::load_defaults_newlines();
 
-        let katex_opts = katex::Opts::builder()
-            .display_mode(true)
-            .build()
-            .unwrap();
-
         RenderContext {
             syntax_set,
             theme,
-            katex_opts,
             onclick : onclick.unwrap_or(Callback::from(|_| ())),
             render_links: render_links.unwrap_or(Callback::from(render_links_default)),
         }
@@ -81,8 +72,12 @@ macro_rules! html_error {
 
 /// `render_maths(content)` returns a html node
 /// with the latex content `content` compiled inside
-fn render_maths(content: &str, context: &RenderContext) -> Option<Html>{
-    katex::render_with_opts(content, &context.katex_opts)
+fn render_maths(content: &str, display_mode: bool) -> Option<Html>{
+    let opts = katex::Opts::builder()
+        .display_mode(display_mode)
+        .build()
+        .unwrap();
+    katex::render_with_opts(content, opts)
         .ok()
         .map(|x| raw_html!(x))
 }
@@ -125,25 +120,40 @@ fn align_string(align: &AlignKind) -> &'static str {
     }
 }
 
-/// `render_table_row(row, align, context)` renders the markdown element `row`
-/// to html using `align` to align each cell.
+/// `render_cell(cell, align, context)` renders cell as html,
+/// and use `align` to 
+fn render_cell<'a> (cell: &'a TableCell, align: &'a AlignKind, 
+               context: &RenderContext) -> Html {
+    let html_children = cell.children.iter()
+        .map(|x| render_node(x, context));
+    html!{
+        <td style={align_string(align)}>
+            {for html_children}
+        </td>
+    }
+}
+
+/// `render_table_row(row, align, context)` 
+/// renders the markdown element `row` to html 
+/// using `align` to align each cell.
 /// `context` is used to render the child components
-fn render_table_row<'a> (row: &'a TableRow, align: &Vec<AlignKind>, context: &RenderContext) -> Html {
+fn render_table_row<'a> (row: &'a TableRow, 
+                         aligns: &Vec<AlignKind>, 
+                         context: &RenderContext) -> Html {
     use core::iter::zip;
+
     let unwrap_cell = |node: &'a Node| match node {
         Node::TableCell(t) => t, 
-        _ => panic!("table row contains something that is not a cell"),
+        _ => panic!("table row contains ... that is not a cell"),
     };
 
-    let render_cell = |(cell, align): (&'a Node, &AlignKind)| html!{
-        <td style={align_string(align)}>
-            {for unwrap_cell(cell).children.iter().map(|x| render_node(x, context))}
-        </td>
-    };
+    let cells = row.children.iter()
+        .map(|x| unwrap_cell(x));
 
     html!{
         <tr>
-            {for zip(&row.children, align).map(render_cell)}
+            {for zip(cells, aligns)
+                .map(|(c, a)| render_cell(c, a, context))}
         </tr>
     }
 }
@@ -165,10 +175,13 @@ pub fn render_node<'a>(node: &'a Node, context: &RenderContext) -> Html {
     match node {
         Node::Html(n) => raw_html!(n.value.clone()),
 
-        Node::Text(n) => html!{
-            <span onclick={mouse_event::make_callback(&context.onclick, &n.position)}>
+        Node::Text(n) => {
+            let onclick = mouse_event::make_callback(&context.onclick, &n.position);
+            html!{
+            <span onclick={onclick}>
             {n.value.clone()}
             </span>
+            }
         },
 
         Node::Root(n) => render_children!(n).collect::<Html>(),
@@ -232,34 +245,46 @@ pub fn render_node<'a>(node: &'a Node, context: &RenderContext) -> Html {
 
         },
 
-        Node::InlineCode(n) => html!{
-            <code onclick={mouse_event::make_callback(&context.onclick, &n.position)}>
-                {n.value.clone()}
-            </code>
+        Node::InlineCode(c) => {
+            let onclick = mouse_event::make_callback(&context.onclick, &c.position);
+
+            html!{
+                <code onclick={onclick}>
+                    {c.value.clone()}
+                </code>
+            }
         },
         Node::Code(c) => {
             let code_content = highlight_code(&c.value, c.lang.as_deref(), context) 
                 .unwrap_or_else(|| html!{c.value.clone()});
 
+            let onclick = mouse_event::make_callback(&context.onclick, &c.position);
+
             html!{
-                <code onclick={mouse_event::make_callback(&context.onclick, &c.position)}>
-                {code_content}
+                <code onclick={onclick}>
+                    <pre>{code_content}</pre>
                 </code>
             }
         },
 
-        Node::Math(m) => html!(
-            <div class={"math-flow"} onclick={mouse_event::make_callback(&context.onclick, &m.position)}>
-            {render_maths(&m.value, context)
-                .unwrap_or(html_error!{"invalid math"})}
-            </div>
-            ),
-        Node::InlineMath(m) => html!(
-            <span class={"math-inline"} onclick={mouse_event::make_callback(&context.onclick, &m.position)}>
-            {render_maths(&m.value, context)
-                .unwrap_or(html_error!{"invalid math"})}
-            </span>
-            ),
+        Node::Math(m) => {
+            let onclick = mouse_event::make_callback(&context.onclick, &m.position);
+            html!{
+                <div class={"math-flow"} onclick={onclick}>
+                {render_maths(&m.value, true)
+                    .unwrap_or(html_error!{"invalid math"})}
+                </div>
+            }
+        },
+        Node::InlineMath(m) => {
+            let onclick = mouse_event::make_callback(&context.onclick, &m.position);
+            html!{
+                <span class={"math-inline"} onclick={onclick}>
+                {render_maths(&m.value, false)
+                    .unwrap_or(html_error!{"invalid math"})}
+                </span>
+            }
+        },
 
         Node::Table(t) => {
             let unwrap_row = |node: &'a Node| match node {
@@ -286,6 +311,7 @@ pub fn render_node<'a>(node: &'a Node, context: &RenderContext) -> Html {
         Node::MdxTextExpression(_) |
         Node::MdxjsEsm(_) |
         Node::MdxJsxFlowElement(_) |
-        Node::MdxFlowExpression(_) => html_error!{"this part contain Mdx syntax, not yet implemented"}
+        Node::MdxFlowExpression(_)
+            => html_error!{"this part contain Mdx syntax, not yet implemented"}
     }
 }

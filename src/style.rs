@@ -8,9 +8,14 @@ fn get_style() -> Style {
              width: 100%
          }
 
-         blockquote{ 
-             margin: 10px; border-left : 5px solid grey; padding:5px
+         blockquote { 
+             margin: 5px; border-left: 5px solid grey; 
+             padding: 5px;
          } 
+         
+         blockquote p {
+             margin: 5px
+         }
 
          ul {
              list-style-type:disc
@@ -27,10 +32,6 @@ fn get_style() -> Style {
          tr:first-child {
              background-color: #eee; font-weight: bold; 
          }
-
-        div.math-flow {
-            display: table; margin: 0 auto
-        }
 
         span.markdown-error {
             background-color: red;
