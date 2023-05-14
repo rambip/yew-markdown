@@ -32,15 +32,10 @@ pub struct Markdown {
 
 
 /// Properties for `Markdown`
-/// `src` -> the raw markdown content to render
-/// `constructs` -> the markdown 
-/// `onclick`: callback executed when a portion of the markdown document  is clicked
-/// `css`: the css of the component. By default there is some minimal styling 
-///          added to the html
-/// `theme_name`: the name of the theme for `syntect`. Refer to their docs
-/// `caching`: if set to true, the syntax trees will be cached. 
-///     That means that if your render document A, then B, then A, 
-///     document A will not have to be parsed a second time
+/// `src` is the raw markdown
+/// other properties:
+/// `onclick`, `style`, `theme_name`, `caching`, `wikilinks`,
+/// `render_link`, `onclick`
 #[derive(PartialEq, Properties, Debug)]
 pub struct Props {
     /// the markdown content, as raw text
@@ -51,7 +46,7 @@ pub struct Props {
 
     /// the css of the entire markdown. 
     /// If you set it, the default style will be ignored (see `src/style.rs`)
-    pub css: Option<AttrValue>,
+    pub style: Option<AttrValue>,
 
     /// the theme for syntax highlighting. 
     /// Please use something that `syntect` knows
@@ -107,7 +102,7 @@ impl Component for Markdown {
                                                 ctx.props().render_link.clone()
         );
 
-        let style = style::compile_css_or_default(ctx.props().css.clone());
+        let style = style::compile_css_or_default(ctx.props().style.clone());
 
 
         Self {
@@ -121,7 +116,7 @@ impl Component for Markdown {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html!{
-            <div class={self.style.get_class_name().to_string()}>
+            <div style={self.style} class={self.style.get_class_name().to_string()}>
                 { render_node(&self.ast, &self.render_context)}
             </div>
         }

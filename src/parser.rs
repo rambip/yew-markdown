@@ -86,8 +86,11 @@ pub fn parse(source: &str, parse_options: &markdown::ParseOptions, wikilinks: bo
     if wikilinks {
         source = preprocess_wikilinks(&source);
     }
-    source = preprocess_math(&source);
-    source = preprocess_hardbreaks(&source);
+    // FIXME: this preprocessing creates a mismatch 
+    // between the source and the `Position`s on the syntax tree
+    
+    // source = preprocess_math(&source);
+    // source = preprocess_hardbreaks(&source);
     markdown::to_mdast(&source, parse_options).expect("unable to parse markdown")
 }
 
