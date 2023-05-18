@@ -1,5 +1,5 @@
-use markdown::{Constructs, ParseOptions, mdast};
-use regex::Regex;
+use markdown::{Constructs, ParseOptions, mdast, mdast::Node};
+// use regex::Regex;
 
 pub fn new_parse_options(constructs: Option<markdown::Constructs>) -> ParseOptions {
     let default_constructs = Constructs {
@@ -56,41 +56,41 @@ pub fn new_parse_options(constructs: Option<markdown::Constructs>) -> ParseOptio
     }
 }
 
-fn preprocess_wikilinks(source: &str) -> String {
-    let wiki_regex_double = Regex::new(r"\[\[(.*?)\|(.*?)\]\]").unwrap();
-    let wiki_regex_simple = Regex::new(r"\[\[(.*?)\]\]").unwrap();
-    let first_replacement = wiki_regex_double
-        .replace_all(source, "[$2]($1 \"wiki\")")
-        .to_string();
+// fn preprocess_wikilinks(source: &str) -> String {
+//     let wiki_regex_double = Regex::new(r"\[\[(.*?)\|(.*?)\]\]").unwrap();
+//     let wiki_regex_simple = Regex::new(r"\[\[(.*?)\]\]").unwrap();
+//     let first_replacement = wiki_regex_double
+//         .replace_all(source, "[$2]($1 \"wiki\")")
+//         .to_string();
 
-    let second_replacement = wiki_regex_simple
-        .replace_all(&first_replacement, "[$1]($1)")
-        .to_string();
+//     let second_replacement = wiki_regex_simple
+//         .replace_all(&first_replacement, "[$1]($1)")
+//         .to_string();
 
-    second_replacement
-}
+//     second_replacement
+// }
 
 /// hack to allow $$x$$ to be parsed as `Node::Math` and not `Node::MathInline`
-fn preprocess_math(source: &str) -> String {
-    let math_regex = Regex::new(r"\$\$").unwrap();
-    math_regex.replace_all(source, "\n$$$$\n").to_string()
-}
+// fn preprocess_math(source: &str) -> String {
+//     let math_regex = Regex::new(r"\$\$").unwrap();
+//     math_regex.replace_all(source, "\n$$$$\n").to_string()
+// }
 
 /// hack to add hardbreaks on every line
-fn preprocess_hardbreaks(source: &str) -> String {
-    source.replace("\n", "  \n")
-}
+// fn preprocess_hardbreaks(source: &str) -> String {
+//     source.replace("\n", "  \n")
+// }
 
 pub fn parse(source: &str, parse_options: &markdown::ParseOptions, wikilinks: bool) -> mdast::Node {
-    let mut source = source.to_string();
-    if wikilinks {
-        source = preprocess_wikilinks(&source);
-    }
-    // FIXME: this preprocessing creates a mismatch 
-    // between the source and the `Position`s on the syntax tree
-    
-    // source = preprocess_math(&source);
-    // source = preprocess_hardbreaks(&source);
-    markdown::to_mdast(&source, parse_options).expect("unable to parse markdown")
+    let ast = markdown::to_mdast(&source.to_string(), parse_options).expect("unable to parse markdown");
+    postprocess(ast, wikilinks)
 }
 
+// TODO: wikilinks, hard breaks, math inline with $$x$$
+fn postprocess(ast: mdast::Node, _wikilinks: bool) -> mdast::Node {
+    match ast {
+        Node::Paragraph(p) => Node::Paragraph(p),
+        Node::InlineMath(m) => Node::InlineMath(m),
+        x => x
+    }
+}

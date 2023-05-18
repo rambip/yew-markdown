@@ -116,7 +116,7 @@ impl Component for Markdown {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html!{
-            <div style={self.style} class={self.style.get_class_name().to_string()}>
+            <div class={self.style.get_class_name().to_string()}>
                 { render_node(&self.ast, &self.render_context)}
             </div>
         }
