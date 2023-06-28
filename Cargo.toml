@@ -19,3 +19,18 @@ syntect = { version = "5.0.0", default-features = false, features = ["default-fa
 web-sys = "0.3.61"
 katex = {version="0.4", default-features=false, features=["wasm-js"]}
 regex = {version="1.8.1"}
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.0"
+wasm-test = {path="../wasmer-test"}
+
+#[build-dependencies]
+#wasmer = "4.0.0"
+
+[workspaces]
+members = [
+    "examples/editor/",
+    "examples/showcase/",
+    "examples/onclick/",
+    "examples/performance/",
+]
