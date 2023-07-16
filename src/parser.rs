@@ -1,5 +1,4 @@
 use markdown::{Constructs, ParseOptions, mdast, mdast::Node};
-use wasm_bindgen::*;
 
 pub fn new_parse_options(constructs: Option<markdown::Constructs>) -> ParseOptions {
     let default_constructs = Constructs {
@@ -56,31 +55,34 @@ pub fn new_parse_options(constructs: Option<markdown::Constructs>) -> ParseOptio
     }
 }
 
-pub fn parse(source: &str, parse_options: &markdown::ParseOptions, wikilinks: bool) -> mdast::Node {
-    let ast = markdown::to_mdast(&source.to_string(), parse_options).expect("unable to parse markdown");
-    postprocess(source, ast, wikilinks)
+pub fn parse(source: &str, parse_options: &markdown::ParseOptions, wikilinks: bool) -> Node {
+    let mut ast = markdown::to_mdast(&source.to_string(), parse_options).expect("unable to parse markdown");
+    postprocess(source, &mut ast, wikilinks);
+    ast
 }
 
-// TODO: wikilinks, hard breaks, math inline with $$x$$
-fn postprocess(source: &str, ast: mdast::Node, _wikilinks: bool) -> mdast::Node {
+fn postprocess(source: &str, ast: &mut Node, wikilinks: bool) {
     match ast {
-        Node::Text(mdast::Text{ value, position}) => {
-            Node::Paragraph(mdast::Paragraph{
-                position,
+        Node::Text(mdast::Text{ value, position}) if wikilinks => {
+            *ast = Node::Paragraph(mdast::Paragraph{
+                position: position.clone(),
                 children: todo!()
             })
+        },
+        Node::Paragraph(mdast::Paragraph{position: Some(p), ref mut children }) if wikilinks => {
+            children = todo!()
+        },
+        Node::InlineMath(m) if is_inline_latex(source, &m) => 
+            *ast = Node::Math(mdast::Math{
+                value: m.value.clone(),
+                position: m.position.clone(),
+                meta: None,
+            }),
+        x => {
+            for c in x.children_mut().into_iter().flatten() {
+                postprocess(source, c, wikilinks)
+            }
         }
-        Node::Paragraph(mdast::Paragraph{position: Some(p), children }) => {
-            let start = p.start.offset;
-            let end = p.end.offset;
-            let text = source.get(start..=end);
-            Node::Paragraph(mdast::Paragraph{
-                position: Some(p),
-                children: todo!()
-            })
-        }
-        Node::InlineMath(m) if is_inline_latex(source, &m) => Node::InlineMath(m),
-        x => x
     }
 }
 
