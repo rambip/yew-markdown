@@ -23,7 +23,7 @@ wasm-test = {git="https://github.com/rambip/wasm-test"}
 #[build-dependencies]
 #wasmer = "4.0.0"
 
-[workspaces]
+[workspace]
 members = [
     "examples/editor/",
     "examples/showcase/",
