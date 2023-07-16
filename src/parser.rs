@@ -1,5 +1,4 @@
 use markdown::{Constructs, ParseOptions, mdast, mdast::Node};
-use regex::Regex;
 use wasm_bindgen::*;
 
 pub fn new_parse_options(constructs: Option<markdown::Constructs>) -> ParseOptions {

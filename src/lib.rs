@@ -2,16 +2,12 @@ use yew::{prelude::*, virtual_dom::AttrValue};
 use markdown::mdast;
 use std::collections::HashMap;
 
-use stylist::Style;
-
 mod parser;
 use parser::{parse, new_parse_options};
 
 mod render;
 use render::{RenderContext, render_node};
 pub use render::LinkProps;
-
-mod style;
 
 mod mouse_event;
 pub use mouse_event::MarkdownMouseEvent;
@@ -27,14 +23,13 @@ pub struct Markdown {
     cached_ast: HashMap<AttrValue, mdast::Node>,
     render_context: RenderContext,
     parse_options: markdown::ParseOptions,
-    style: Style,
 }
 
 
 /// Properties for `Markdown`
 /// `src` is the raw markdown
 /// other properties:
-/// `onclick`, `style`, `theme_name`, `caching`, `wikilinks`,
+/// `onclick`, `theme_name`, `caching`, `wikilinks`,
 /// `render_link`, `onclick`
 #[derive(PartialEq, Properties, Debug)]
 pub struct Props {
@@ -43,10 +38,6 @@ pub struct Props {
 
     /// the constructs enabled for parsing. This will probably evolve in the future
     pub constructs: Option<Constructs>,
-
-    /// the css of the entire markdown. 
-    /// If you set it, the default style will be ignored (see `src/style.rs`)
-    pub style: Option<AttrValue>,
 
     /// the theme for syntax highlighting. 
     /// Please use something that `syntect` knows
@@ -102,21 +93,18 @@ impl Component for Markdown {
                                                 ctx.props().render_link.clone()
         );
 
-        let style = style::compile_css_or_default(ctx.props().style.clone());
-
 
         Self {
             cached_ast: HashMap::new(),
             ast: parse(&ctx.props().src, &parse_options, ctx.props().wikilinks),
             render_context,
-            style,
             parse_options,
         }
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html!{
-            <div class={self.style.get_class_name().to_string()}>
+            <div style="width:100%">
                 { render_node(&self.ast, &self.render_context)}
             </div>
         }
