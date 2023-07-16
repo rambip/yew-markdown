@@ -56,31 +56,6 @@ pub fn new_parse_options(constructs: Option<markdown::Constructs>) -> ParseOptio
     }
 }
 
-// fn preprocess_wikilinks(source: &str) -> String {
-//     let wiki_regex_double = Regex::new(r"\[\[(.*?)\|(.*?)\]\]").unwrap();
-//     let wiki_regex_simple = Regex::new(r"\[\[(.*?)\]\]").unwrap();
-//     let first_replacement = wiki_regex_double
-//         .replace_all(source, "[$2]($1 \"wiki\")")
-//         .to_string();
-
-//     let second_replacement = wiki_regex_simple
-//         .replace_all(&first_replacement, "[$1]($1)")
-//         .to_string();
-
-//     second_replacement
-// }
-
-/// hack to allow $$x$$ to be parsed as `Node::Math` and not `Node::MathInline`
-// fn preprocess_math(source: &str) -> String {
-//     let math_regex = Regex::new(r"\$\$").unwrap();
-//     math_regex.replace_all(source, "\n$$$$\n").to_string()
-// }
-
-/// hack to add hardbreaks on every line
-// fn preprocess_hardbreaks(source: &str) -> String {
-//     source.replace("\n", "  \n")
-// }
-
 pub fn parse(source: &str, parse_options: &markdown::ParseOptions, wikilinks: bool) -> mdast::Node {
     let ast = markdown::to_mdast(&source.to_string(), parse_options).expect("unable to parse markdown");
     postprocess(source, ast, wikilinks)
@@ -92,7 +67,7 @@ fn postprocess(source: &str, ast: mdast::Node, _wikilinks: bool) -> mdast::Node 
         Node::Text(mdast::Text{ value, position}) => {
             Node::Paragraph(mdast::Paragraph{
                 position,
-                children: parse_wikilinks(&value),
+                children: todo!()
             })
         }
         Node::Paragraph(mdast::Paragraph{position: Some(p), children }) => {
@@ -101,7 +76,7 @@ fn postprocess(source: &str, ast: mdast::Node, _wikilinks: bool) -> mdast::Node 
             let text = source.get(start..=end);
             Node::Paragraph(mdast::Paragraph{
                 position: Some(p),
-                children: parse_wikilinks(text.unwrap()),
+                children: todo!()
             })
         }
         Node::InlineMath(m) if is_inline_latex(source, &m) => Node::InlineMath(m),
@@ -110,57 +85,24 @@ fn postprocess(source: &str, ast: mdast::Node, _wikilinks: bool) -> mdast::Node 
 }
 
 
-fn parse_wikilinks(text: &str) -> Vec<mdast::Node> {
-    let mut wikilinks = Vec::new();
-    let mut last_opening = 0;
-    let mut last_closing = 0;
-    for i in 0..text.len()-1 {
-        if text.get(i..i+2) == Some("[[") { 
-            last_opening = i+2;
-        }
-        if text.get(i..i+2) == Some("]]") { 
-            let sub = text.get(last_opening..i+2).unwrap();
-            wikilinks.push(
-                Node::Link(mdast::Link{
-                    children: todo!(),
-                    position: todo!(),
-                    url: todo!(),
-                    title: todo!(),
-                }));
-        }
-    }
-    wikilinks
-}
-
 fn is_inline_latex(source: &str, m: &mdast::InlineMath) -> bool {
     match &m.position {
         Some(p) => {
-            source.get(p.start.offset..p.start.offset+3) == Some("$$") 
-            && source.get(p.end.offset-2..=p.end.offset) == Some("$$")
+            source.get(p.start.offset..p.start.offset+2) == Some("$$") 
+            && source.get(p.end.offset-2..p.end.offset) == Some("$$")
         }
         None => false
     }
 }
 
 #[cfg(test)]
-mod tests{
-    #[test]
-    #[no_mangle]
-    pub extern "C" fn __wasm_test_right_test(){
-        assert!(1==1);
-    }
-    #[test]
-    #[no_mangle]
-    pub extern "C" fn __wasm_test_wrong_test(){
-        assert!(1==0);
-    }
-    #[test]
-    #[no_mangle]
-    pub extern "C" fn __wasm_test_vec_test2(){
-        let mut vec = Vec::new();
-        for i in 0..=1000 {
-            vec.push(i);
-        }
-        assert!(vec[1000] == 1000)
+mod tests {
+    use wasm_test::*;
+
+    #[wasm_test]
+    fn test_offset(){
+        let s = "$$x$$";
+        assert!(s.get(0..2)==Some("$$"));
+        assert!(s.get(s.len()-2..s.len())==Some("$$"));
     }
 }
