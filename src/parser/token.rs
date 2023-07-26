@@ -1,7 +1,5 @@
 pub use markdown::unist::{Point, Position};
 
-use core::str::Chars;
-
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Pipe,
@@ -31,15 +29,15 @@ impl ToString for Token {
 
 enum State {
     Default,
-    AfterPipe(Point),
-    AfterOpen1(Point),
-    AfterOpen2(Position),
-    AfterOpen3(Point),
-    AfterClose1(Point),
-    AfterClose2(Position),
-    AfterClose3(Point),
-    AfterSymbol(Position, String),
-    AfterReturn(Point),
+    AfterPipe,
+    AfterOpen1,
+    AfterOpen2,
+    AfterOpen3,
+    AfterClose1,
+    AfterClose2,
+    AfterClose3,
+    AfterSymbol(String),
+    AfterReturn,
 }
 
 impl Default for State {
@@ -48,33 +46,20 @@ impl Default for State {
     }
 }
 
-fn pos2(start: Point, end: Point) -> Position {
-    Position{
-        start, end
-    }
-}
-
-fn pos1(p: Point) -> Position {
-    Position {
-        start: p.clone(),
-        end: p,
-    }
-}
-
 impl State {
-    fn finalize(self: State) -> Option<(Token, Position)> {
+    fn finalize(self: State) -> Option<Token> {
         use State::*;
 
         Some(match self {
-            AfterPipe(p) => (Pipe, pos1(p)),
-            AfterOpen1(p) => (LBra, pos1(p)),
-            AfterOpen2(x) => (LLBra, x),
-            AfterOpen3(p) => (LBra, pos1(p)),
-            AfterClose1(p) => (RBra, pos1(p)),
-            AfterClose2(x) => (RRBra, x),
-            AfterClose3(p) => (RBra, pos1(p)),
-            AfterSymbol(x, s) => (Word(s), x),
-            AfterReturn(p) => (NewLine, pos1(p)),
+            AfterPipe => Pipe,
+            AfterOpen1 => LBra,
+            AfterOpen2 => LLBra,
+            AfterOpen3 => LBra,
+            AfterClose1 => RBra,
+            AfterClose2 => RRBra,
+            AfterClose3 => RBra,
+            AfterSymbol(s) => Word(s),
+            AfterReturn => NewLine,
             Default => return None,
         })
     }
@@ -96,6 +81,7 @@ pub struct TokenStream<'a> {
     source: core::str::Chars<'a>,
     cursor: Point,
     state: State,
+    last_token_end: Point,
 }
 
 impl<'a> TokenStream<'a> {
@@ -104,6 +90,7 @@ impl<'a> TokenStream<'a> {
             source: source.chars(),
             cursor: point.clone(),
             state: State::Default,
+            last_token_end: point.clone()
         }
     }
 }
@@ -116,34 +103,52 @@ impl<'a> Iterator for TokenStream<'a> {
 
         for c in self.source.by_ref() {
 
-            let cursor = self.cursor.clone();
-            let transition = |old_state| match (c, old_state) {
-                ('\r', x) => (x, None),
-                ('\n', x) => ( AfterReturn(cursor), x.finalize()),
-                ('[', AfterOpen1(p)) =>  (AfterOpen2(pos2(p, cursor)), None),
-                ('[', AfterOpen2(p)) =>  (AfterOpen3(cursor), AfterOpen2(p).finalize()),
-                ('[', AfterOpen3(p)) =>  (AfterOpen3(cursor), AfterOpen3(p).finalize()),
-                ('[', x) =>              (AfterOpen1(cursor), x.finalize()),
-                (']', AfterClose1(p)) => (AfterClose2(pos2(p, cursor)), None),
-                (']', AfterClose2(p)) => (AfterClose3(cursor), AfterClose2(p).finalize()),
-                (']', AfterClose3(p)) => (AfterClose3(cursor), AfterClose3(p).finalize()),
-                (']', x) =>              (AfterClose1(cursor), x.finalize()),
-                ('|', x) =>              (AfterPipe(cursor), x.finalize()),
-                (c, AfterSymbol(p, mut s)) => {
+            let state = std::mem::take(&mut self.state);
+
+            let (new_state, state_to_finalize) = match (c, state) {
+                ('\r', s)           => (s, None),
+                ('\n', s)           => (AfterReturn, Some(s)),
+                ('[', AfterOpen1)   => (AfterOpen2, None),
+                ('[', s@AfterOpen2) => (AfterOpen3, Some(s)),
+                ('[', s@AfterOpen3) => (AfterOpen3, Some(s)),
+                ('[', s)            => (AfterOpen1, Some(s)),
+                (']', AfterClose1)  => (AfterClose2, None),
+                (']', s@AfterClose2)=> (AfterClose3, Some(s)),
+                (']', s@AfterClose3)=> (AfterClose3, Some(s)),
+                (']', s)            => (AfterClose1, Some(s)),
+                ('|', s)            => (AfterPipe, Some(s)),
+                (c, AfterSymbol(mut s)) => {
                     s.push(c);
-                    (AfterSymbol(pos2(p.start, cursor), s), None)
+                    (AfterSymbol(s), None)
                 }
-                (c, x) => (AfterSymbol(pos2(cursor.clone(), cursor), c.into()), x.finalize())
+                (c, s) => (AfterSymbol(c.into()), Some(s))
 
             };
-            let state = std::mem::take(&mut self.state);
-            let (state, item) = transition(state);
-            self.state = state;
+
+            self.state = new_state;
+
+            let last_cursor = self.cursor.clone();
             advance(&mut self.cursor, c);
 
-            if item.is_some() {return item}
+            if let Some(t) = state_to_finalize.and_then(|x| x.finalize()) {
+
+                let position = Position {
+                    end: last_cursor.clone(),
+                    start: std::mem::replace(&mut self.last_token_end, last_cursor),
+                };
+
+                return Some((t, position));
+            }
         }
-        (std::mem::take(&mut self.state)).finalize()
+
+        if let Some(t) = std::mem::take(&mut self.state).finalize() {
+            let position = Position {
+                start: std::mem::replace(&mut self.last_token_end, self.cursor.clone()),
+                end: self.cursor.clone(),
+            };
+            return Some((t, position));
+        }
+        None
     }
 }
 
@@ -155,20 +160,21 @@ mod tests {
     #[wasm_test]
     fn test_stream(){
         let source = "[abc] [[ d e]]\nb";
-        let stream: Vec<(Token, Position)> = TokenStream::new_at(source, Point::new(1,1,0))
+        let stream: Vec<Token> = TokenStream::new_at(source, Point::new(1,1,0))
+            .map(|(t, _)| t)
             .collect();
         println!("{stream:?}");
         assert_eq!(stream, 
                    vec![
-                       (LBra,Position::new(1,1,0, 1,1,0)), 
-                       (Word("abc".into()), Position::new(1,2,1, 1,4,3)),
-                       (RBra,Position::new(1,5,4, 1,5,4)), 
-                       (Word(" ".into()), Position::new(1,6,5, 1,6,5)),
-                       (LLBra, Position::new(1,7,6, 1,8,7)), 
-                       (Word(" d e".into()), Position::new(1,9,8, 1,12, 11)),
-                       (RRBra, Position::new(1,13,12, 1,14,13)),
-                       (NewLine, Position::new(1,15,14, 1,15,14)),
-                       (Word("b".into()), Position::new(2,1,15, 2,1,15)),
+                       LBra, 
+                       Word("abc".into()),
+                       RBra, 
+                       Word(" ".into()), 
+                       LLBra,  
+                       Word(" d e".into()), 
+                       RRBra, 
+                       NewLine, 
+                       Word("b".into()), 
                    ]
         );
     }
@@ -182,8 +188,8 @@ mod tests {
         println!("{stream:?}");
         assert_eq!(stream, 
                    vec![
-                       (LLBra, Position::new(1,1,0, 1,2,1)), 
-                       (LBra, Position::new(1,3,2, 1,3,2)), 
+                       (LLBra, Position::new(1,1,0, 1,3,2)), 
+                       (LBra, Position::new(1,3,2, 1,4,3)), 
                    ]
         );
     }

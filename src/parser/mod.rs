@@ -132,7 +132,10 @@ fn parse_wikilink_first_field<'a>(tokens: &mut PeekTokenStream<'a>) -> Result<(S
 }
 
 fn parse_wikilink_alias<'a>(tokens: &mut PeekTokenStream<'a>) -> Result<mdast::Text, ParseError>{
-    let start : Point = tokens.peek().unwrap().1.start.clone();
+    let start : Point = match tokens.peek(){
+        Some((_, x)) => x.start.clone(),
+        None => return Err(ParseError(String::new(), None))
+    };
     let mut name = String::new();
     let mut end: Point = start.clone();
     loop {
@@ -241,9 +244,7 @@ mod tests {
     }
 
     #[wasm_test]
-    #[should_panic]
     fn test_offset2(){
-        // FIXME: position.end is the **next** point, even if it doesn't exist
         let s = "12345";
         let _parser = Parser::new_at(s, Position::new(1,1,0, 1,6,5));
     }
@@ -254,11 +255,12 @@ mod tests {
         let nodes: Vec<Node> =
             Parser::new_at(s, Position::new(1,1,0, 1,29,28))
             .collect();
-        assert_eq!(nodes[0], text_content("here is a wikilink: ".into(), Position::new(1,1,0, 1,20,19)));
+        println!("{nodes:?}");
+        assert_eq!(nodes[0], text_content("here is a wikilink: ".into(), Position::new(1,1,0, 1,21,20)));
         assert_eq!(nodes[1],
                 Node::Link(mdast::Link { 
-                    children: vec![ text_content("link".into(), Position::new(1,23,22,1,26,25))], 
-                    position: Some(Position::new(1,21,20, 1,28,27)), 
+                    children: vec![ text_content("link".into(), Position::new(1,23,22,1,27,26))], 
+                    position: Some(Position::new(1,21,20, 1,29,28)), 
                     url: "link".into(), 
                     title: Some("wiki".into()) 
                 })
@@ -276,9 +278,9 @@ mod tests {
             nodes[0],
             Node::Link(mdast::Link { 
                 children: vec![ 
-                    text_content("an alias with a | in it".into(), Position::new(1,7,6, 1,29,28))
+                    text_content("an alias with a | in it".into(), Position::new(1,7,6, 1,30,29))
                 ], 
-                position: Some(Position::new(1,1,0, 1,31,30)), 
+                position: Some(Position::new(1,1,0, 1,32,31)), 
                 url: "url".into(), 
                 title: Some("wiki".into()) 
             })
