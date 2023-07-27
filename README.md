@@ -19,14 +19,6 @@ use yew_markdown::Markdown;
     }
 ```
 
-You also have to include this css file (if you use trunk, just add this line in your index.html):
-
-```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css" integrity="sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI" crossorigin="anonymous">
-```
-Otherwise, math will not be rendered properly
-
-
 # Examples
 Take a look at the different examples !
 You just need trunk and a web-browser to test them.
