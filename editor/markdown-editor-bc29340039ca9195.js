@@ -652,11 +652,11 @@ function getImports() {
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };
-    imports.wbg.__wbindgen_closure_wrapper2621 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper2622 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 1257, __wbg_adapter_20);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper3013 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper3014 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 1416, __wbg_adapter_23);
         return addHeapObject(ret);
     };
@@ -695,7 +695,7 @@ function initSync(module) {
 
 async function init(input) {
     if (typeof input === 'undefined') {
-        input = new URL('markdown-editor-9fe2118b46f9caf1_bg.wasm', import.meta.url);
+        input = new URL('markdown-editor-bc29340039ca9195_bg.wasm', import.meta.url);
     }
     const imports = getImports();
 
