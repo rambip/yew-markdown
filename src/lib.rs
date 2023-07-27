@@ -105,6 +105,7 @@ impl Component for Markdown {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html!{
             <div style="width:100%">
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css" integrity="sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI" crossorigin="anonymous"/>
                 { render_node(&self.ast, &self.render_context)}
             </div>
         }
