@@ -209,7 +209,7 @@ pub fn render_node<'a>(node: &'a Node, context: &RenderContext) -> Html {
             render_children!(n).collect::<Html>()
         ),
         Node::ThematicBreak(_) => html!{<hr/>},
-        Node::Paragraph(n) => html!{<p>{for render_children!(n)}</p>},
+        Node::Paragraph(n) => html!{<span>{for render_children!(n)}</span>},
 
         Node::List(n) if n.ordered => html!{
             <ol start={n.start.unwrap_or(0).to_string()}>
