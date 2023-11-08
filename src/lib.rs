@@ -1,33 +1,57 @@
 use yew::{prelude::*, virtual_dom::AttrValue};
-use markdown::mdast;
 
-mod parser;
-use parser::{parse, new_parse_options};
+use pulldown_cmark_wikilink::ParserOffsetIter;
 
 mod render;
-use render::{RenderContext, render_node};
-pub use render::LinkProps;
+use render::{RenderContext, Renderer};
 
-mod mouse_event;
-pub use mouse_event::MarkdownMouseEvent;
+mod utils;
 
 pub use syntect;
-pub use markdown::Constructs;
-pub use markdown::unist::Point;
+
+use web_sys::MouseEvent;
+use core::ops::Range;
+
+/// `mouse_event` -> the original mouse event triggered when a text element was clicked on
+/// `position` -> the range between the starting offset and the end offset
+#[derive(Clone, Debug)]
+pub struct MarkdownMouseEvent {
+    pub mouse_event: MouseEvent,
+    pub position: Range<usize>
+}
+
+/// the description of a link, used to render it with a custom callback.
+/// See [pulldown_cmark::Tag::Link] for documentation
+pub struct LinkProps {
+    /// the url of the link
+    pub url: String,
+
+    /// the html view of the element under the link
+    pub content: Html,
+
+    /// the title of the link. 
+    /// If you don't know what it is, don't worry: it is ofter empty
+    pub title: String,
+
+    /// the type of link
+    pub link_type: pulldown_cmark_wikilink::LinkType,
+
+    /// wether the link is an image
+    pub image: bool,
+}
 
 
 /// the markdown component
 pub struct Markdown {
-    ast: mdast::Node,
     render_context: RenderContext,
-    parse_options: markdown::ParseOptions,
+    parse_options: pulldown_cmark_wikilink::Options,
 }
 
 
 /// Properties for `Markdown`
 /// `src` is the raw markdown
 /// other properties:
-/// `onclick`, `theme_name`, `caching`, `wikilinks`,
+/// `onclick`, `theme`, `wikilinks`,
 /// `render_link`, `onclick`
 #[derive(PartialEq, Properties, Debug)]
 pub struct Props {
@@ -35,11 +59,11 @@ pub struct Props {
     pub src: AttrValue,
 
     /// the constructs enabled for parsing. This will probably evolve in the future
-    pub constructs: Option<Constructs>,
+    pub parse_options: Option<pulldown_cmark_wikilink::Options>,
 
     /// the theme for syntax highlighting. 
     /// Please use something that `syntect` knows
-    pub theme_name: Option<String>,
+    pub theme: Option<String>,
 
     #[prop_or(false)]
     /// wether you allow wikilinks.
@@ -76,32 +100,52 @@ impl Component for Markdown {
 
     fn create(ctx: &Context<Self>) -> Self {
 
-        let parse_options = new_parse_options(ctx.props().constructs.clone());
-
-        let render_context = RenderContext::new(ctx.props().theme_name.clone(),
+        let render_context = RenderContext::new(ctx.props().theme.clone(),
                                                 ctx.props().onclick.clone(),
                                                 ctx.props().render_link.clone()
         );
 
+        let parse_options = ctx.props().parse_options
+            .unwrap_or(pulldown_cmark_wikilink::Options::all());
 
         Self {
-            ast: parse(&ctx.props().src, &parse_options, ctx.props().wikilinks),
             render_context,
-            parse_options,
+            parse_options
         }
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let ast: Vec<_> = ParserOffsetIter::new_ext(
+            &ctx.props().src, 
+            self.parse_options, 
+            ctx.props().wikilinks
+        )
+        .collect();
+
         html!{
             <div style="width:100%">
                 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css" integrity="sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI" crossorigin="anonymous"/>
-                { render_node(&self.ast, &self.render_context)}
+                { Renderer::new(&self.render_context, &mut ast.into_iter())
+                    .collect::<Html>()
+                }
             </div>
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>, _: &Props) -> bool {
-        self.ast = parse(&ctx.props().src, &self.parse_options, ctx.props().wikilinks);
+    fn changed(&mut self, ctx: &Context<Self>, old_props: &Props) -> bool {
+        let new_props = ctx.props();
+        if new_props.theme != old_props.theme {
+            self.render_context = RenderContext::new(
+                ctx.props().theme.clone(), 
+                ctx.props().onclick.clone(), 
+                ctx.props().render_link.clone()
+            );
+        }
+        if new_props.parse_options != old_props.parse_options {
+            self.parse_options = ctx.props().parse_options
+                .unwrap_or(pulldown_cmark_wikilink::Options::all());
+        }
+
         true
     }
 }

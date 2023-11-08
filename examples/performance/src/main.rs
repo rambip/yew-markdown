@@ -38,7 +38,7 @@ impl Component for App {
             Some(i) => html! {
                 <div>
                     <button onclick={onclick}> {"next"}</button>
-                    <Markdown src={self.markdown_content[i].clone()} caching=true/>
+                    <Markdown src={self.markdown_content[i].clone()}/>
                 </div>
             },
             None => html! {"the end"},

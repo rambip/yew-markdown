@@ -1,5 +1,7 @@
 use yew::prelude::*;
-use yew_markdown::{Markdown, MarkdownMouseEvent, Point};
+use yew_markdown::{Markdown, MarkdownMouseEvent};
+
+use core::ops::Range;
 
 static MARKDOWN_SOURCE : &str = r#"
 # Interactive markdown experiment
@@ -31,7 +33,7 @@ struct App {
 }
 
 enum Msg {
-    ShowSource(Point, Point)
+    ShowSource(Range<usize>)
 }
 
 impl Component for App {
@@ -39,9 +41,9 @@ impl Component for App {
     type Properties=();
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::ShowSource(start, end) => {
-                self.start_index = start.offset;
-                self.end_index = end.offset;
+            Msg::ShowSource(range) => {
+                self.start_index = range.start;
+                self.end_index = range.end;
             }
         }
         true
@@ -59,7 +61,7 @@ impl Component for App {
         let (middle, after) = x.split_at(self.end_index - self.start_index);
 
         let callback = ctx.link().callback(|x: MarkdownMouseEvent| 
-                                           Msg::ShowSource(x.start_position, x.end_position)
+                                           Msg::ShowSource(x.position)
         );
         html! {
             <div>
