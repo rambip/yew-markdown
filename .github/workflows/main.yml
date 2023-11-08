@@ -5,7 +5,7 @@ on:
 permissions:
   contents: write
 jobs:
-  nix-build:
+  build-pages:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -19,8 +19,27 @@ jobs:
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
     - run: nix build
-          
-    - name: Deploy 🚀
-      uses: JamesIves/github-pages-deploy-action@v4
+
+    - uses: actions/upload-pages-artifact@v2
       with:
-        folder: result
+        path: "result/"
+
+
+  deploy:
+    needs: build-pages
+    runs-on: ubuntu-latest
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    environment:
+      name: github-pages
+        # don't forget to go to the settings/environment and to allow main to push !
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
+
