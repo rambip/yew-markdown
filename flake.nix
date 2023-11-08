@@ -65,12 +65,12 @@
             buildExample = name: craneLib.buildTrunkPackage {
                 inherit CARGO_BUILD_TARGET cargoArtifacts;
                 src = fullSrc;
-                pname = "leptos-markdown-${name}";
+                pname = "yew-markdown-${name}";
                 trunkIndexPath = "examples/${name}/index.html";
                 cargoExtraArgs = "--package=./examples/${name}";
                 # RELATIVE URLS are a MESS 
                 # https://github.com/thedodd/trunk/pull/470
-                trunkExtraBuildArgs = "--public-url=/leptos-markdown/${name}";
+                trunkExtraBuildArgs = "--public-url=/yew-markdown/${name}";
 
                 nativeBuildInputs = [
                     (pkgs.wasm-bindgen-cli.override {
@@ -90,7 +90,7 @@
             {
                 checks = {};
                 packages = examples // {
-                    default = pkgs.linkFarm "leptos-markdown examples" attr_examples;
+                    default = pkgs.linkFarm "yew-markdown examples" attr_examples;
                 };
 
                 devShells.default = pkgs.mkShell {
