@@ -940,7 +940,7 @@ checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 [[package]]
 name = "rust-web-markdown"
 version = "0.1.0"
-source = "git+https://github.com/rambip/rust-web-markdown/#abd6c6798fb237595e4045b68c8e5243a4a87606"
+source = "git+https://github.com/rambip/rust-web-markdown/#62a5b1e059668a18134c0d8b8ab1029afcc09d12"
 dependencies = [
  "katex",
  "lazy_static",

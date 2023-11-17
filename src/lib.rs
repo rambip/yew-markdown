@@ -19,16 +19,16 @@ pub struct MarkdownContext {
     send_debug_info: Option<Callback<Vec<String>>>,
 }
 
-impl WebFramework for MarkdownContext {
+impl WebFramework<'static> for MarkdownContext {
     type View = Html;
 
     type HtmlCallback<T: 'static> = Callback<T, Html>;
 
     type Callback<A: 'static, B: 'static> = Callback<A, B>;
 
-    type Setter<T: 'static> = UseStateHandle<T>;
+    type Setter<T> = UseStateHandle<T>;
 
-    fn set<T: 'static>(&self, setter: &UseStateHandle<T>, value: T) {
+    fn set<T>(&self, setter: &UseStateHandle<T>, value: T) {
         setter.set(value)
     }
 
@@ -42,9 +42,9 @@ impl WebFramework for MarkdownContext {
         &self,
         e: HtmlElement,
         inside: Self::View,
-        attributes: ElementAttributes<Self>,
+        attributes: ElementAttributes<'static, Self>,
     ) -> Self::View {
-        let style = attributes.style.to_string();
+        let style = attributes.style.map(|x| x.to_string());
         let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
         let on_click = attributes.on_click;
 
@@ -124,8 +124,8 @@ impl WebFramework for MarkdownContext {
         }
     }
 
-    fn el_hr(&self, attributes: ElementAttributes<Self>) -> Self::View {
-        let style = attributes.style.to_string();
+    fn el_hr(&self, attributes: ElementAttributes<'static, Self>) -> Self::View {
+        let style = attributes.style.map(|x| x.to_string());
         let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
         let on_click = attributes.on_click;
         html! {<hr  style={style} onclick={on_click} class={classes}/>}
@@ -168,8 +168,8 @@ impl WebFramework for MarkdownContext {
             .append_child(&link).unwrap();
     }
 
-    fn el_input_checkbox(&self, checked: bool, attributes: ElementAttributes<Self>) -> Self::View {
-        let style = attributes.style.to_string();
+    fn el_input_checkbox(&self, checked: bool, attributes: ElementAttributes<'static, Self>) -> Self::View {
+        let style = attributes.style.map(|x| x.to_string());
         let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
         let on_click = attributes.on_click;
         html! {
@@ -202,7 +202,7 @@ pub struct Props {
 
     pub onclick: Option<Callback<MarkdownMouseEvent, ()>>,
 
-    pub render_links: Option<Callback<LinkDescription<MarkdownContext>, Html>>,
+    pub render_links: Option<Callback<LinkDescription<'static, MarkdownContext>, Html>>,
 
     pub theme: Option<String>,
 
@@ -215,7 +215,7 @@ pub struct Props {
     pub parse_options: Option<Options>,
 
     #[prop_or_default]
-    pub components: HashMap<String, Callback<MdComponentProps<MarkdownContext>, Html>>,
+    pub components: HashMap<String, Callback<MdComponentProps<'static, MarkdownContext>, Html>>,
 
     pub frontmatter: Option<UseStateHandle<String>>,
 
