@@ -42,85 +42,88 @@ impl WebFramework for MarkdownContext {
         inside: Self::View,
         attributes: ElementAttributes<Self>,
     ) -> Self::View {
-        let inner_html = attributes.inner_html.map(|x| x.to_string());
         let style = attributes.style.to_string();
         let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
         let on_click = attributes.on_click;
 
+        let inside = match attributes.inner_html {
+            Some(i) => Html::from_html_unchecked(i.to_string().into()),
+            None => inside
+        };
+
         match e {
             HtmlElement::Div => {
-                html! {<div inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</div>}
+                html! {<div style={style} onclick={on_click} class={classes}>{inside}</div>}
             }
             HtmlElement::Span => {
-                html! {<span inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</span>}
+                html! {<span style={style} onclick={on_click} class={classes}>{inside}</span>}
             }
             HtmlElement::Paragraph => {
-                html! {<p inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</p>}
+                html! {<p  style={style} onclick={on_click} class={classes}>{inside}</p>}
             }
             HtmlElement::Ul => {
-                html! {<ul inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</ul>}
+                html! {<ul  style={style} onclick={on_click} class={classes}>{inside}</ul>}
             }
             HtmlElement::Ol(start) => {
-                html! {<ol start={start.to_string()} inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</ol>}
+                html! {<ol start={start.to_string()}  style={style} onclick={on_click} class={classes}>{inside}</ol>}
             }
             HtmlElement::Li => {
-                html! {<li inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</li>}
+                html! {<li  style={style} onclick={on_click} class={classes}>{inside}</li>}
             }
             HtmlElement::BlockQuote => {
-                html! {<blockquote inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</blockquote>}
+                html! {<blockquote  style={style} onclick={on_click} class={classes}>{inside}</blockquote>}
             }
             HtmlElement::Heading(1) => {
-                html! {<h1 inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</h1>}
+                html! {<h1  style={style} onclick={on_click} class={classes}>{inside}</h1>}
             }
             HtmlElement::Heading(2) => {
-                html! {<h2 inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</h2>}
+                html! {<h2  style={style} onclick={on_click} class={classes}>{inside}</h2>}
             }
             HtmlElement::Heading(3) => {
-                html! {<h3 inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</h3>}
+                html! {<h3  style={style} onclick={on_click} class={classes}>{inside}</h3>}
             }
             HtmlElement::Heading(4) => {
-                html! {<h4 inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</h4>}
+                html! {<h4  style={style} onclick={on_click} class={classes}>{inside}</h4>}
             }
             HtmlElement::Heading(5) => {
-                html! {<h5 inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</h5>}
+                html! {<h5  style={style} onclick={on_click} class={classes}>{inside}</h5>}
             }
             HtmlElement::Heading(6) => {
-                html! {<h6 inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</h6>}
+                html! {<h6  style={style} onclick={on_click} class={classes}>{inside}</h6>}
             }
             HtmlElement::Heading(_) => panic!(),
             HtmlElement::Table => {
-                html! {<table inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</table>}
+                html! {<table  style={style} onclick={on_click} class={classes}>{inside}</table>}
             }
             HtmlElement::Thead => {
-                html! {<th inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</th>}
+                html! {<th  style={style} onclick={on_click} class={classes}>{inside}</th>}
             }
             HtmlElement::Trow => {
-                html! {<tr inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</tr>}
+                html! {<tr  style={style} onclick={on_click} class={classes}>{inside}</tr>}
             }
             HtmlElement::Tcell => {
-                html! {<td inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</td>}
+                html! {<td  style={style} onclick={on_click} class={classes}>{inside}</td>}
             }
             HtmlElement::Italics => {
-                html! {<i inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</i>}
+                html! {<i  style={style} onclick={on_click} class={classes}>{inside}</i>}
             }
             HtmlElement::Bold => {
-                html! {<b inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</b>}
+                html! {<b  style={style} onclick={on_click} class={classes}>{inside}</b>}
             }
             HtmlElement::StrikeThrough => {
-                html! {<s inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</s>}
+                html! {<s  style={style} onclick={on_click} class={classes}>{inside}</s>}
             }
             HtmlElement::Pre => {
-                html! {<pre inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</pre>}
+                html! {<pre  style={style} onclick={on_click} class={classes}>{inside}</pre>}
             }
         }
     }
 
     fn el_hr(&self, attributes: ElementAttributes<Self>) -> Self::View {
-        let inner_html = attributes.inner_html.map(|x| x.to_string());
         let style = attributes.style.to_string();
         let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
         let on_click = attributes.on_click;
-        html! {<hr inner_hml={inner_html} style={style} onclick={on_click} class={classes}/>}
+        html! {<hr  style={style} onclick={on_click} class={classes}/>}
     }
 
     fn el_br(&self) -> Self::View {
@@ -128,11 +131,14 @@ impl WebFramework for MarkdownContext {
     }
 
     fn el_code(&self, inside: Self::View, attributes: ElementAttributes<Self>) -> Self::View {
-        let inner_html = attributes.inner_html.map(|x| x.to_string());
+        let inside = match attributes.inner_html {
+            Some(i) => Html::from_html_unchecked(i.to_string().into()),
+            None => inside
+        };
         let style = attributes.style.to_string();
         let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
         let on_click = attributes.on_click;
-        html! {<code inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</code>}
+        html! {<code  style={style} onclick={on_click} class={classes}>{inside}</code>}
     }
 
     fn el_fragment(&self, children: Vec<Self::View>) -> Self::View {
