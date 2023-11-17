@@ -192,7 +192,7 @@ impl WebFramework for MarkdownContext {
 pub struct Props {
     pub src: AttrValue,
 
-    pub on_click: Option<Callback<MarkdownMouseEvent, ()>>,
+    pub onclick: Option<Callback<MarkdownMouseEvent, ()>>,
 
     pub render_links: Option<Callback<LinkDescription<MarkdownContext>, Html>>,
 
@@ -218,7 +218,7 @@ pub struct Props {
 pub fn Markdown(props: &Props) -> Html {
     let Props {
         src,
-        on_click,
+        onclick,
         render_links,
         theme,
         wikilinks,
@@ -230,7 +230,7 @@ pub fn Markdown(props: &Props) -> Html {
     } = props;
 
     let props = MarkdownProps {
-        on_click: on_click.as_ref(),
+        on_click: onclick.as_ref(),
         render_links: render_links.as_ref(),
         theme: theme.as_deref(),
         wikilinks: *wikilinks,
