@@ -10,9 +10,7 @@ use yew::prelude::{
     function_component, html, AttrValue, Callback, Html, Properties, UseStateHandle,
 };
 
-use web_sys::{
-    window,
-};
+use web_sys::window;
 
 use std::collections::HashMap;
 
@@ -100,7 +98,7 @@ impl WebFramework for MarkdownContext {
                 html! {<table  style={style} onclick={on_click} class={classes}>{inside}</table>}
             }
             HtmlElement::Thead => {
-                html! {<th  style={style} onclick={on_click} class={classes}>{inside}</th>}
+                html! {<thead  style={style} onclick={on_click} class={classes}>{inside}</thead>}
             }
             HtmlElement::Trow => {
                 html! {<tr  style={style} onclick={on_click} class={classes}>{inside}</tr>}
@@ -120,6 +118,9 @@ impl WebFramework for MarkdownContext {
             HtmlElement::Pre => {
                 html! {<pre  style={style} onclick={on_click} class={classes}>{inside}</pre>}
             }
+            HtmlElement::Code => {
+                html! {<code  style={style} onclick={on_click} class={classes}>{inside}</code>}
+            }
         }
     }
 
@@ -132,17 +133,6 @@ impl WebFramework for MarkdownContext {
 
     fn el_br(&self) -> Self::View {
         html! {<br/>}
-    }
-
-    fn el_code(&self, inside: Self::View, attributes: ElementAttributes<Self>) -> Self::View {
-        let inside = match attributes.inner_html {
-            Some(i) => Html::from_html_unchecked(i.to_string().into()),
-            None => inside
-        };
-        let style = attributes.style.to_string();
-        let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
-        let on_click = attributes.on_click;
-        html! {<code  style={style} onclick={on_click} class={classes}>{inside}</code>}
     }
 
     fn el_fragment(&self, children: Vec<Self::View>) -> Self::View {
@@ -173,7 +163,9 @@ impl WebFramework for MarkdownContext {
         link.set_attribute("integrity", integrity).unwrap();
         link.set_attribute("crossorigin", crossorigin).unwrap();
 
-        document.append_child(&link).unwrap();
+        document.head()
+            .unwrap()
+            .append_child(&link).unwrap();
     }
 
     fn el_input_checkbox(&self, checked: bool, attributes: ElementAttributes<Self>) -> Self::View {
