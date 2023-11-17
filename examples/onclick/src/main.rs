@@ -3,7 +3,7 @@ use yew_markdown::{Markdown, MarkdownMouseEvent};
 
 use core::ops::Range;
 
-static MARKDOWN_SOURCE : &str = r#"
+static MARKDOWN_SOURCE: &str = r#"
 # Interactive markdown experiment
 ## Goal
 This page illustrates how you can use the `onclick` property of the `Markdown` component in order to add some interactivity in your markdown
@@ -33,12 +33,12 @@ struct App {
 }
 
 enum Msg {
-    ShowSource(Range<usize>)
+    ShowSource(Range<usize>),
 }
 
 impl Component for App {
-    type Message=Msg;
-    type Properties=();
+    type Message = Msg;
+    type Properties = ();
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::ShowSource(range) => {
@@ -51,8 +51,8 @@ impl Component for App {
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            start_index : 0,
-            end_index : 0,
+            start_index: 0,
+            end_index: 0,
         }
     }
 
@@ -60,9 +60,9 @@ impl Component for App {
         let (before, x) = MARKDOWN_SOURCE.split_at(self.start_index);
         let (middle, after) = x.split_at(self.end_index - self.start_index);
 
-        let callback = ctx.link().callback(|x: MarkdownMouseEvent| 
-                                           Msg::ShowSource(x.position)
-        );
+        let callback = ctx
+            .link()
+            .callback(|x: MarkdownMouseEvent| Msg::ShowSource(x.position));
         html! {
             <div>
                 <Markdown src={MARKDOWN_SOURCE} onclick={callback}/>
@@ -77,7 +77,6 @@ impl Component for App {
             </div>
         }
     }
-
 }
 
 fn main() {

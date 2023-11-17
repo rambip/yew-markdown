@@ -1,151 +1,246 @@
-use yew::{prelude::*, virtual_dom::AttrValue};
+use rust_web_markdown::{
+    render_markdown, ElementAttributes, HtmlElement, MarkdownProps, WebFramework,
+};
 
-use pulldown_cmark_wikilink::ParserOffsetIter;
+pub use rust_web_markdown::{
+    LinkDescription, MarkdownMouseEvent, MdComponentProps, Options,
+};
 
-mod render;
-use render::{RenderContext, Renderer};
+use yew::prelude::{
+    function_component, html, AttrValue, Callback, Html, Properties, UseStateHandle,
+};
 
-mod utils;
+use std::collections::HashMap;
 
-pub use syntect;
-
-use web_sys::MouseEvent;
-use core::ops::Range;
-
-/// `mouse_event` -> the original mouse event triggered when a text element was clicked on
-/// `position` -> the range between the starting offset and the end offset
-#[derive(Clone, Debug)]
-pub struct MarkdownMouseEvent {
-    pub mouse_event: MouseEvent,
-    pub position: Range<usize>
+#[derive(Clone)]
+pub struct MarkdownContext {
+    send_debug_info: Option<Callback<Vec<String>>>,
 }
 
-/// the description of a link, used to render it with a custom callback.
-/// See [pulldown_cmark::Tag::Link] for documentation
-pub struct LinkProps {
-    /// the url of the link
-    pub url: String,
+impl WebFramework for MarkdownContext {
+    type View = Html;
 
-    /// the html view of the element under the link
-    pub content: Html,
+    type HtmlCallback<T: 'static> = Callback<T, Html>;
 
-    /// the title of the link. 
-    /// If you don't know what it is, don't worry: it is ofter empty
-    pub title: String,
+    type Callback<A: 'static, B: 'static> = Callback<A, B>;
 
-    /// the type of link
-    pub link_type: pulldown_cmark_wikilink::LinkType,
+    type Setter<T: 'static> = UseStateHandle<T>;
 
-    /// wether the link is an image
-    pub image: bool,
+    fn set<T: 'static>(&self, setter: &UseStateHandle<T>, value: T) {
+        setter.set(value)
+    }
+
+    fn send_debug_info(&self, info: Vec<String>) {
+        if let Some(sender) = &self.send_debug_info {
+            sender.emit(info)
+        }
+    }
+
+    fn el_with_attributes(
+        &self,
+        e: HtmlElement,
+        inside: Self::View,
+        attributes: ElementAttributes<Self>,
+    ) -> Self::View {
+        let inner_html = attributes.inner_html.map(|x| x.to_string());
+        let style = attributes.style.to_string();
+        let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
+        let on_click = attributes.on_click;
+
+        match e {
+            HtmlElement::Div => {
+                html! {<div inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</div>}
+            }
+            HtmlElement::Span => {
+                html! {<span inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</span>}
+            }
+            HtmlElement::Paragraph => {
+                html! {<p inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</p>}
+            }
+            HtmlElement::Ul => {
+                html! {<ul inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</ul>}
+            }
+            HtmlElement::Ol(start) => {
+                html! {<ol start={start.to_string()} inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</ol>}
+            }
+            HtmlElement::Li => {
+                html! {<li inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</li>}
+            }
+            HtmlElement::BlockQuote => {
+                html! {<blockquote inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</blockquote>}
+            }
+            HtmlElement::Heading(1) => {
+                html! {<h1 inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</h1>}
+            }
+            HtmlElement::Heading(2) => {
+                html! {<h2 inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</h2>}
+            }
+            HtmlElement::Heading(3) => {
+                html! {<h3 inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</h3>}
+            }
+            HtmlElement::Heading(4) => {
+                html! {<h4 inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</h4>}
+            }
+            HtmlElement::Heading(5) => {
+                html! {<h5 inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</h5>}
+            }
+            HtmlElement::Heading(6) => {
+                html! {<h6 inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</h6>}
+            }
+            HtmlElement::Heading(_) => panic!(),
+            HtmlElement::Table => {
+                html! {<table inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</table>}
+            }
+            HtmlElement::Thead => {
+                html! {<th inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</th>}
+            }
+            HtmlElement::Trow => {
+                html! {<tr inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</tr>}
+            }
+            HtmlElement::Tcell => {
+                html! {<td inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</td>}
+            }
+            HtmlElement::Italics => {
+                html! {<i inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</i>}
+            }
+            HtmlElement::Bold => {
+                html! {<b inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</b>}
+            }
+            HtmlElement::StrikeThrough => {
+                html! {<s inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</s>}
+            }
+            HtmlElement::Pre => {
+                html! {<pre inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</pre>}
+            }
+        }
+    }
+
+    fn el_hr(&self, attributes: ElementAttributes<Self>) -> Self::View {
+        let inner_html = attributes.inner_html.map(|x| x.to_string());
+        let style = attributes.style.to_string();
+        let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
+        let on_click = attributes.on_click;
+        html! {<hr inner_hml={inner_html} style={style} onclick={on_click} class={classes}/>}
+    }
+
+    fn el_br(&self) -> Self::View {
+        html! {<br/>}
+    }
+
+    fn el_code(&self, inside: Self::View, attributes: ElementAttributes<Self>) -> Self::View {
+        let inner_html = attributes.inner_html.map(|x| x.to_string());
+        let style = attributes.style.to_string();
+        let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
+        let on_click = attributes.on_click;
+        html! {<code inner_hml={inner_html} style={style} onclick={on_click} class={classes}>{inside}</code>}
+    }
+
+    fn el_fragment(&self, children: Vec<Self::View>) -> Self::View {
+        children.into_iter().collect()
+    }
+
+    fn el_a(&self, children: Self::View, href: &str) -> Self::View {
+        html! {<a href={href.to_string()}>{children}</a>}
+    }
+
+    fn el_img(&self, src: &str, alt: &str) -> Self::View {
+        html! {<img src={src.to_string()} alt={alt.to_string()}/>}
+    }
+
+    fn el_text(&self, text: &str) -> Self::View {
+        html! {text}
+    }
+
+    fn el_stylesheet_link(&self, href: &str, integrity: &str, crossorigin: &str) -> Self::View {
+        html! {
+            <link href={href.to_string()}
+                integrity={integrity.to_string()}
+                crossorigin={crossorigin.to_string()}
+            />
+        }
+    }
+
+    fn el_input_checkbox(&self, checked: bool, attributes: ElementAttributes<Self>) -> Self::View {
+        let style = attributes.style.to_string();
+        let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
+        let on_click = attributes.on_click;
+        html! {
+            <input type="checkbox" checked={checked}
+                onclick={on_click}
+                class={classes}
+                style={style}
+            />
+        }
+    }
+
+    fn call_callback<A: 'static, B: 'static>(callback: &Self::Callback<A, B>, input: A) -> B {
+        callback.emit(input)
+    }
+
+    fn call_html_callback<T: 'static>(callback: &Self::HtmlCallback<T>, input: T) -> Self::View {
+        callback.emit(input)
+    }
+
+    fn make_callback<A: 'static, B: 'static, F: Fn(A) -> B + 'static>(
+        f: F,
+    ) -> Self::Callback<A, B> {
+        Callback::from(f)
+    }
 }
 
-
-/// the markdown component
-pub struct Markdown {
-    render_context: RenderContext,
-    parse_options: pulldown_cmark_wikilink::Options,
-}
-
-
-/// Properties for `Markdown`
-/// `src` is the raw markdown
-/// other properties:
-/// `onclick`, `theme`, `wikilinks`,
-/// `render_link`, `onclick`
-#[derive(PartialEq, Properties, Debug)]
+#[derive(PartialEq, Properties)]
 pub struct Props {
-    /// the markdown content, as raw text
     pub src: AttrValue,
 
-    /// the constructs enabled for parsing. This will probably evolve in the future
-    pub parse_options: Option<pulldown_cmark_wikilink::Options>,
+    pub on_click: Option<Callback<MarkdownMouseEvent, ()>>,
 
-    /// the theme for syntax highlighting. 
-    /// Please use something that `syntect` knows
+    pub render_links: Option<Callback<LinkDescription<MarkdownContext>, Html>>,
+
     pub theme: Option<String>,
 
     #[prop_or(false)]
-    /// wether you allow wikilinks.
-    /// By default, [[link|alias]] will be converted to 
-    /// ```
-    /// LinkProps {
-    ///     address = link,
-    ///     alias = alias,
-    ///     title = None
-    /// }
-    /// ```
-    /// And then to a link, unless you set `render_link`
     pub wikilinks: bool,
 
-    /// the callback used to render links. By default
-    /// ```
-    /// render_link = Callback::from(move |link| 
-    ///     html!{<a href={link.address.clone()}>{link.alias.clone()}</a>}
-    /// )
-    /// ```
-    pub render_link: Option<Callback<LinkProps, Html>>,
+    #[prop_or(false)]
+    pub hard_line_breaks: bool,
 
-    /// a callback emmited when you click the markdown content.
-    /// It takes an argument of type `MarkdownMouseEvent`
-    pub onclick: Option<Callback<MarkdownMouseEvent>>,
+    pub parse_options: Option<Options>,
+
+    #[prop_or_default]
+    pub components: HashMap<String, Callback<MdComponentProps<MarkdownContext>, Html>>,
+
+    pub frontmatter: Option<UseStateHandle<String>>,
+
+    pub send_debug_info: Option<Callback<Vec<String>>>,
 }
 
+#[function_component]
+pub fn Markdown(props: &Props) -> Html {
+    let Props {
+        src,
+        on_click,
+        render_links,
+        theme,
+        wikilinks,
+        hard_line_breaks,
+        parse_options,
+        components,
+        frontmatter,
+        send_debug_info,
+    } = props;
 
-
-impl Component for Markdown {
-    type Message = ();
-
-    type Properties = Props;
-
-    fn create(ctx: &Context<Self>) -> Self {
-
-        let render_context = RenderContext::new(ctx.props().theme.clone(),
-                                                ctx.props().onclick.clone(),
-                                                ctx.props().render_link.clone()
-        );
-
-        let parse_options = ctx.props().parse_options
-            .unwrap_or(pulldown_cmark_wikilink::Options::all());
-
-        Self {
-            render_context,
-            parse_options
-        }
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let ast: Vec<_> = ParserOffsetIter::new_ext(
-            &ctx.props().src, 
-            self.parse_options, 
-            ctx.props().wikilinks
-        )
-        .collect();
-
-        html!{
-            <div style="width:100%">
-                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css" integrity="sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI" crossorigin="anonymous"/>
-                { Renderer::new(&self.render_context, &mut ast.into_iter())
-                    .collect::<Html>()
-                }
-            </div>
-        }
-    }
-
-    fn changed(&mut self, ctx: &Context<Self>, old_props: &Props) -> bool {
-        let new_props = ctx.props();
-        if new_props.theme != old_props.theme {
-            self.render_context = RenderContext::new(
-                ctx.props().theme.clone(), 
-                ctx.props().onclick.clone(), 
-                ctx.props().render_link.clone()
-            );
-        }
-        if new_props.parse_options != old_props.parse_options {
-            self.parse_options = ctx.props().parse_options
-                .unwrap_or(pulldown_cmark_wikilink::Options::all());
-        }
-
-        true
-    }
+    let props = MarkdownProps {
+        on_click: on_click.as_ref(),
+        render_links: render_links.as_ref(),
+        theme: theme.as_deref(),
+        wikilinks: *wikilinks,
+        hard_line_breaks: *hard_line_breaks,
+        parse_options: parse_options.as_ref(),
+        components: &components,
+        frontmatter: frontmatter.as_ref(),
+    };
+    let cx = MarkdownContext {
+        send_debug_info: send_debug_info.clone(),
+    };
+    render_markdown(cx, src, props)
 }

@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_markdown::Markdown;
 
-static MARKDOWN_SOURCE : &str = r#"
+static MARKDOWN_SOURCE: &str = r#"
 ## Code
 ```rust
 fn main() {

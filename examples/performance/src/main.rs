@@ -2,7 +2,6 @@ use yew::prelude::*;
 use yew_markdown::Markdown;
 mod content;
 
-
 struct App {
     index: Option<usize>,
     markdown_content: Vec<String>,
@@ -13,21 +12,21 @@ enum Msg {
 }
 
 impl Component for App {
-    type Message=Msg;
-    type Properties=();
+    type Message = Msg;
+    type Properties = ();
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         let n = self.markdown_content.len();
         match (msg, self.index) {
-            (Msg::Next, Some(i)) if i<n-1 => self.index = Some(i+1),
-            (Msg::Next, Some(i)) if i==n-1 => self.index = None,
-            _ => ()
+            (Msg::Next, Some(i)) if i < n - 1 => self.index = Some(i + 1),
+            (Msg::Next, Some(i)) if i == n - 1 => self.index = None,
+            _ => (),
         }
         true
     }
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            index:Some(0),
+            index: Some(0),
             markdown_content: content::generate_content(),
         }
     }
@@ -44,7 +43,6 @@ impl Component for App {
             None => html! {"the end"},
         }
     }
-
 }
 
 fn main() {

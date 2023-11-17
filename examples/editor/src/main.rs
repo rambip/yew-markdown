@@ -12,8 +12,8 @@ enum Msg {
 }
 
 impl Component for App {
-    type Message=Msg;
-    type Properties=();
+    type Message = Msg;
+    type Properties = ();
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::UpdateContent(s) => self.content = s,
@@ -28,7 +28,7 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let oninput = ctx.link().callback(|s|  Msg::UpdateContent(s));
+        let oninput = ctx.link().callback(|s| Msg::UpdateContent(s));
 
         html! {
             <div style={"display: flex; align-items: top;"}>
@@ -40,7 +40,6 @@ impl Component for App {
             </div>
         }
     }
-
 }
 
 fn main() {

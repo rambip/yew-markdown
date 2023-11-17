@@ -62,6 +62,13 @@
                 doCheck = false;
             };
 
+
+            wasmBindgen = (pkgs.wasm-bindgen-cli.override {
+                version = "0.2.87";
+                hash = "sha256-0u9bl+FkXEK2b54n7/l9JOCtKo+pb42GF9E1EnAUQa0=";
+                cargoHash = "sha256-AsZBtE2qHJqQtuCt/wCAgOoxYMfvDh8IzBPAOkYSYko=";
+            });
+
             buildExample = name: craneLib.buildTrunkPackage {
                 inherit CARGO_BUILD_TARGET cargoArtifacts;
                 src = fullSrc;
@@ -72,13 +79,7 @@
                 # https://github.com/thedodd/trunk/pull/470
                 trunkExtraBuildArgs = "--public-url=/yew-markdown/${name}";
 
-                nativeBuildInputs = [
-                    (pkgs.wasm-bindgen-cli.override {
-                        version = "0.2.87";
-                        hash = "sha256-0u9bl+FkXEK2b54n7/l9JOCtKo+pb42GF9E1EnAUQa0=";
-                        cargoHash = "sha256-AsZBtE2qHJqQtuCt/wCAgOoxYMfvDh8IzBPAOkYSYko=";
-                    })
-                ];
+                nativeBuildInputs = [wasmBindgen];
             };
             example_names = builtins.attrNames(builtins.readDir ./examples);
             attr_examples = builtins.map 

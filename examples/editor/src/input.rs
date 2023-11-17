@@ -1,6 +1,6 @@
-use yew::{prelude::*, function_component};
-use web_sys::HtmlTextAreaElement;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
+use web_sys::HtmlTextAreaElement;
+use yew::{function_component, prelude::*};
 
 pub fn get_value_from_textarea(e: InputEvent) -> String {
     let event: Event = e.dyn_into().unwrap_throw();
@@ -8,7 +8,6 @@ pub fn get_value_from_textarea(e: InputEvent) -> String {
     let target: HtmlTextAreaElement = event_target.dyn_into().unwrap_throw();
     target.value()
 }
-
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -22,12 +21,10 @@ pub struct Props {
 #[function_component]
 pub fn TextArea(props: &Props) -> Html {
     let oninput = props.oninput.clone();
-    let callback = Callback::from(
-        move |e: InputEvent| oninput.emit(get_value_from_textarea(e))
-    );
-    html!{
-        <textarea 
-            placeholder={props.placeholder.clone()} 
+    let callback = Callback::from(move |e: InputEvent| oninput.emit(get_value_from_textarea(e)));
+    html! {
+        <textarea
+            placeholder={props.placeholder.clone()}
             oninput={callback}
             cols={props.cols.map(|x| x.to_string())}
             rows={props.rows.map(|x| x.to_string())}
