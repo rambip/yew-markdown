@@ -10,6 +10,10 @@ use yew::prelude::{
     function_component, html, AttrValue, Callback, Html, Properties, UseStateHandle,
 };
 
+use web_sys::{
+    window,
+};
+
 use std::collections::HashMap;
 
 #[derive(Clone)]
@@ -157,13 +161,19 @@ impl WebFramework for MarkdownContext {
         html! {text}
     }
 
-    fn el_stylesheet_link(&self, href: &str, integrity: &str, crossorigin: &str) -> Self::View {
-        html! {
-            <link href={href.to_string()}
-                integrity={integrity.to_string()}
-                crossorigin={crossorigin.to_string()}
-            />
-        }
+    fn mount_dynamic_link(&self, rel: &str, href: &str, integrity: &str, crossorigin: &str) {
+        let document = window().unwrap().document().unwrap();
+
+        let link = document
+            .create_element("link")
+            .unwrap();
+
+        link.set_attribute("rel", rel).unwrap();
+        link.set_attribute("href", href).unwrap();
+        link.set_attribute("integrity", integrity).unwrap();
+        link.set_attribute("crossorigin", crossorigin).unwrap();
+
+        document.append_child(&link).unwrap();
     }
 
     fn el_input_checkbox(&self, checked: bool, attributes: ElementAttributes<Self>) -> Self::View {
