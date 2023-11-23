@@ -1,5 +1,5 @@
 use rust_web_markdown::{
-    render_markdown, ElementAttributes, HtmlElement, MarkdownProps, WebFramework,
+    render_markdown, ElementAttributes, HtmlElement, MarkdownProps, Context,
 };
 
 pub use rust_web_markdown::{
@@ -10,23 +10,44 @@ use yew::prelude::{
     function_component, html, AttrValue, Callback, Html, Properties, UseStateHandle,
 };
 
-use web_sys::window;
+use web_sys::{window, MouseEvent};
 
 use std::collections::HashMap;
 
-#[derive(Clone)]
-pub struct MarkdownContext {
-    send_debug_info: Option<Callback<Vec<String>>>,
-}
 
-impl WebFramework<'static> for MarkdownContext {
+impl Context<'static> for Props {
     type View = Html;
 
     type HtmlCallback<T: 'static> = Callback<T, Html>;
 
-    type Callback<A: 'static, B: 'static> = Callback<A, B>;
+    type Handler<T: 'static> = Callback<T>;
 
     type Setter<T> = UseStateHandle<T>;
+
+    fn props<'a>(&'a self) -> MarkdownProps<'a, 'static, Self> {
+        let Props {
+            onclick,
+            render_links,
+            theme,
+            wikilinks,
+            hard_line_breaks,
+            parse_options,
+            components,
+            frontmatter,
+            ..
+        } = self;
+
+        MarkdownProps {
+            on_click: onclick.as_ref(),
+            render_links: render_links.as_ref(),
+            theme: theme.as_deref(),
+            wikilinks: *wikilinks,
+            hard_line_breaks: *hard_line_breaks,
+            parse_options: parse_options.as_ref(),
+            components: &components,
+            frontmatter: frontmatter.as_ref(),
+        }
+    }
 
     fn set<T>(&self, setter: &UseStateHandle<T>, value: T) {
         setter.set(value)
@@ -42,7 +63,7 @@ impl WebFramework<'static> for MarkdownContext {
         &self,
         e: HtmlElement,
         inside: Self::View,
-        attributes: ElementAttributes<'static, Self>,
+        attributes: ElementAttributes<Callback<MouseEvent>>,
     ) -> Self::View {
         let style = attributes.style.map(|x| x.to_string());
         let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
@@ -124,7 +145,7 @@ impl WebFramework<'static> for MarkdownContext {
         }
     }
 
-    fn el_hr(&self, attributes: ElementAttributes<'static, Self>) -> Self::View {
+    fn el_hr(&self, attributes: ElementAttributes<Callback<MouseEvent>>) -> Self::View {
         let style = attributes.style.map(|x| x.to_string());
         let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
         let on_click = attributes.on_click;
@@ -168,7 +189,7 @@ impl WebFramework<'static> for MarkdownContext {
             .append_child(&link).unwrap();
     }
 
-    fn el_input_checkbox(&self, checked: bool, attributes: ElementAttributes<'static, Self>) -> Self::View {
+    fn el_input_checkbox(&self, checked: bool, attributes: ElementAttributes<Callback<MouseEvent>>) -> Self::View {
         let style = attributes.style.map(|x| x.to_string());
         let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
         let on_click = attributes.on_click;
@@ -181,7 +202,7 @@ impl WebFramework<'static> for MarkdownContext {
         }
     }
 
-    fn call_callback<A: 'static, B: 'static>(callback: &Self::Callback<A, B>, input: A) -> B {
+    fn call_handler<T: 'static>(callback: &Self::Handler<T>, input: T) {
         callback.emit(input)
     }
 
@@ -189,20 +210,21 @@ impl WebFramework<'static> for MarkdownContext {
         callback.emit(input)
     }
 
-    fn make_callback<A: 'static, B: 'static, F: Fn(A) -> B + 'static>(
+    fn make_handler<T: 'static, F: Fn(T) + 'static>(
+        &self,
         f: F,
-    ) -> Self::Callback<A, B> {
+    ) -> Self::Handler<T> {
         Callback::from(f)
     }
 }
 
-#[derive(PartialEq, Properties)]
+#[derive(PartialEq, Properties, Clone)]
 pub struct Props {
     pub src: AttrValue,
 
     pub onclick: Option<Callback<MarkdownMouseEvent, ()>>,
 
-    pub render_links: Option<Callback<LinkDescription<'static, MarkdownContext>, Html>>,
+    pub render_links: Option<Callback<LinkDescription<Html>, Html>>,
 
     pub theme: Option<String>,
 
@@ -215,7 +237,7 @@ pub struct Props {
     pub parse_options: Option<Options>,
 
     #[prop_or_default]
-    pub components: HashMap<String, Callback<MdComponentProps<'static, MarkdownContext>, Html>>,
+    pub components: HashMap<String, Callback<MdComponentProps<Html>, Html>>,
 
     pub frontmatter: Option<UseStateHandle<String>>,
 
@@ -224,31 +246,5 @@ pub struct Props {
 
 #[function_component]
 pub fn Markdown(props: &Props) -> Html {
-    let Props {
-        src,
-        onclick,
-        render_links,
-        theme,
-        wikilinks,
-        hard_line_breaks,
-        parse_options,
-        components,
-        frontmatter,
-        send_debug_info,
-    } = props;
-
-    let props = MarkdownProps {
-        on_click: onclick.as_ref(),
-        render_links: render_links.as_ref(),
-        theme: theme.as_deref(),
-        wikilinks: *wikilinks,
-        hard_line_breaks: *hard_line_breaks,
-        parse_options: parse_options.as_ref(),
-        components: &components,
-        frontmatter: frontmatter.as_ref(),
-    };
-    let cx = MarkdownContext {
-        send_debug_info: send_debug_info.clone(),
-    };
-    render_markdown(cx, src, props)
+    render_markdown(props, &props.src)
 }
