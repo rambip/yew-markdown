@@ -24,7 +24,7 @@ impl<'a> Context<'a, 'static> for &'a Props {
 
     type Setter<T: 'static> = UseStateHandle<T>;
 
-    fn props(&'a self) -> MarkdownProps<'a, 'static, Self> {
+    fn props(self) -> MarkdownProps<'a, 'static, Self> {
         let Props {
             onclick,
             render_links,
@@ -49,18 +49,18 @@ impl<'a> Context<'a, 'static> for &'a Props {
         }
     }
 
-    fn set<T>(&self, setter: &UseStateHandle<T>, value: T) {
+    fn set<T>(self, setter: &UseStateHandle<T>, value: T) {
         setter.set(value)
     }
 
-    fn send_debug_info(&self, info: Vec<String>) {
+    fn send_debug_info(self, info: Vec<String>) {
         if let Some(sender) = &self.send_debug_info {
             sender.emit(info)
         }
     }
 
     fn el_with_attributes(
-        &self,
+        self,
         e: HtmlElement,
         inside: Self::View,
         attributes: ElementAttributes<Callback<MouseEvent>>,
@@ -145,34 +145,34 @@ impl<'a> Context<'a, 'static> for &'a Props {
         }
     }
 
-    fn el_hr(&self, attributes: ElementAttributes<Callback<MouseEvent>>) -> Self::View {
+    fn el_hr(self, attributes: ElementAttributes<Callback<MouseEvent>>) -> Self::View {
         let style = attributes.style.map(|x| x.to_string());
         let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
         let on_click = attributes.on_click;
         html! {<hr  style={style} onclick={on_click} class={classes}/>}
     }
 
-    fn el_br(&self) -> Self::View {
+    fn el_br(self) -> Self::View {
         html! {<br/>}
     }
 
-    fn el_fragment(&self, children: Vec<Self::View>) -> Self::View {
+    fn el_fragment(self, children: Vec<Self::View>) -> Self::View {
         children.into_iter().collect()
     }
 
-    fn el_a(&self, children: Self::View, href: &str) -> Self::View {
+    fn el_a(self, children: Self::View, href: &str) -> Self::View {
         html! {<a href={href.to_string()}>{children}</a>}
     }
 
-    fn el_img(&self, src: &str, alt: &str) -> Self::View {
+    fn el_img(self, src: &str, alt: &str) -> Self::View {
         html! {<img src={src.to_string()} alt={alt.to_string()}/>}
     }
 
-    fn el_text(&self, text: &str) -> Self::View {
+    fn el_text(self, text: &str) -> Self::View {
         html! {text}
     }
 
-    fn mount_dynamic_link(&self, rel: &str, href: &str, integrity: &str, crossorigin: &str) {
+    fn mount_dynamic_link(self, rel: &str, href: &str, integrity: &str, crossorigin: &str) {
         let document = window().unwrap().document().unwrap();
 
         let link = document
@@ -189,7 +189,7 @@ impl<'a> Context<'a, 'static> for &'a Props {
             .append_child(&link).unwrap();
     }
 
-    fn el_input_checkbox(&self, checked: bool, attributes: ElementAttributes<Callback<MouseEvent>>) -> Self::View {
+    fn el_input_checkbox(self, checked: bool, attributes: ElementAttributes<Callback<MouseEvent>>) -> Self::View {
         let style = attributes.style.map(|x| x.to_string());
         let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
         let on_click = attributes.on_click;
@@ -211,7 +211,7 @@ impl<'a> Context<'a, 'static> for &'a Props {
     }
 
     fn make_handler<T: 'static, F: Fn(T) + 'static>(
-        &self,
+        self,
         f: F,
     ) -> Self::Handler<T> {
         Callback::from(f)
@@ -246,5 +246,5 @@ pub struct Props {
 
 #[function_component]
 pub fn Markdown(props: &Props) -> Html {
-    render_markdown(&props, &props.src)
+    render_markdown(props, &props.src)
 }
