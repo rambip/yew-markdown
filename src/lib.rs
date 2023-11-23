@@ -15,16 +15,16 @@ use web_sys::{window, MouseEvent};
 use std::collections::HashMap;
 
 
-impl Context<'static> for Props {
+impl<'a> Context<'a, 'static> for &'a Props {
     type View = Html;
 
     type HtmlCallback<T: 'static> = Callback<T, Html>;
 
     type Handler<T: 'static> = Callback<T>;
 
-    type Setter<T> = UseStateHandle<T>;
+    type Setter<T: 'static> = UseStateHandle<T>;
 
-    fn props<'a>(&'a self) -> MarkdownProps<'a, 'static, Self> {
+    fn props(&'a self) -> MarkdownProps<'a, 'static, Self> {
         let Props {
             onclick,
             render_links,
@@ -246,5 +246,5 @@ pub struct Props {
 
 #[function_component]
 pub fn Markdown(props: &Props) -> Html {
-    render_markdown(props, &props.src)
+    render_markdown(&props, &props.src)
 }
