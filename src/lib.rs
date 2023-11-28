@@ -1,19 +1,34 @@
 use rust_web_markdown::{
     render_markdown, ElementAttributes, HtmlElement, MarkdownProps, Context,
+    CowStr, MouseEvent
 };
 
+use core::ops::Range;
+
 pub use rust_web_markdown::{
-    LinkDescription, MarkdownMouseEvent, MdComponentProps, Options,
+    LinkDescription, MdComponentProps, Options,
 };
 
 use yew::prelude::{
     function_component, html, AttrValue, Callback, Html, Properties, UseStateHandle,
 };
 
-use web_sys::{window, MouseEvent};
+use web_sys::window;
 
 use std::collections::HashMap;
 
+
+#[derive(Clone, Debug)]
+pub struct MarkdownMouseEvent {
+    /// the original mouse event triggered when a text element was clicked on
+    pub mouse_event: MouseEvent,
+
+    /// the corresponding range in the markdown source, as a slice of [`u8`][u8]
+    pub position: Range<usize>,
+
+    // TODO: add a clonable tag for the type of the element
+    // pub tag: pulldown_cmark::Tag<'a>,
+}
 
 impl<'a> Context<'a, 'static> for &'a Props {
     type View = Html;
@@ -26,7 +41,6 @@ impl<'a> Context<'a, 'static> for &'a Props {
 
     fn props(self) -> MarkdownProps<'a, 'static, Self> {
         let Props {
-            onclick,
             render_links,
             theme,
             wikilinks,
@@ -38,7 +52,6 @@ impl<'a> Context<'a, 'static> for &'a Props {
         } = self;
 
         MarkdownProps {
-            on_click: onclick.as_ref(),
             render_links: render_links.as_ref(),
             theme: theme.as_deref(),
             wikilinks: *wikilinks,
@@ -160,15 +173,15 @@ impl<'a> Context<'a, 'static> for &'a Props {
         children.into_iter().collect()
     }
 
-    fn el_a(self, children: Self::View, href: &str) -> Self::View {
+    fn el_a(self, children: Self::View, href: String) -> Self::View {
         html! {<a href={href.to_string()}>{children}</a>}
     }
 
-    fn el_img(self, src: &str, alt: &str) -> Self::View {
-        html! {<img src={src.to_string()} alt={alt.to_string()}/>}
+    fn el_img(self, src: String, alt: String) -> Self::View {
+        html! {<img src={src} alt={alt}/>}
     }
 
-    fn el_text(self, text: &str) -> Self::View {
+    fn el_text(self, text: CowStr<'a>) -> Self::View {
         html! {text}
     }
 
@@ -216,6 +229,27 @@ impl<'a> Context<'a, 'static> for &'a Props {
     ) -> Self::Handler<T> {
         Callback::from(f)
     }
+
+    fn make_md_handler(self, position: Range<usize>, stop_propagation: bool) -> Self::Handler<MouseEvent> {
+        match &self.onclick {
+            Some(f) => {
+                let f = f.clone();
+                Callback::from(move |e: MouseEvent| {
+                    if stop_propagation {
+                        e.stop_propagation()
+                    }
+                    let report = MarkdownMouseEvent {
+                        mouse_event: e,
+                        position: position.clone(),
+                    };
+                    f.emit(report)
+                    }
+                )
+            },
+            None => Callback::noop(),
+        }
+    }
+
 }
 
 #[derive(PartialEq, Properties, Clone)]
