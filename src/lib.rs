@@ -1,6 +1,6 @@
 use rust_web_markdown::{
     render_markdown, ElementAttributes, HtmlElement, MarkdownProps, Context,
-    CowStr, MouseEvent
+    CowStr, 
 };
 
 use core::ops::Range;
@@ -13,7 +13,7 @@ use yew::prelude::{
     function_component, html, AttrValue, Callback, Html, Properties, UseStateHandle,
 };
 
-use web_sys::window;
+use web_sys::{window, MouseEvent};
 
 use std::collections::HashMap;
 
@@ -38,6 +38,8 @@ impl<'a> Context<'a, 'static> for &'a Props {
     type Handler<T: 'static> = Callback<T>;
 
     type Setter<T: 'static> = UseStateHandle<T>;
+
+    type MouseEvent = MouseEvent;
 
     fn props(self) -> MarkdownProps<'a, 'static, Self> {
         let Props {
@@ -81,11 +83,6 @@ impl<'a> Context<'a, 'static> for &'a Props {
         let style = attributes.style.map(|x| x.to_string());
         let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
         let on_click = attributes.on_click;
-
-        let inside = match attributes.inner_html {
-            Some(i) => Html::from_html_unchecked(i.to_string().into()),
-            None => inside
-        };
 
         match e {
             HtmlElement::Div => {
@@ -155,6 +152,18 @@ impl<'a> Context<'a, 'static> for &'a Props {
             HtmlElement::Code => {
                 html! {<code  style={style} onclick={on_click} class={classes}>{inside}</code>}
             }
+        }
+    }
+
+    fn el_span_with_inner_html(self, inner_html: String, attributes: ElementAttributes<Callback<MouseEvent>>) -> Self::View {
+        let style = attributes.style.map(|x| x.to_string());
+        let classes: Vec<_> = attributes.classes.iter().map(|x| x.to_string()).collect();
+        let onclick = attributes.on_click;
+
+        html! {
+            <span style={style} onclick={onclick} class={classes}>
+                {Html::from_html_unchecked(inner_html.into())}
+            </span>
         }
     }
 
