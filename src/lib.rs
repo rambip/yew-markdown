@@ -68,6 +68,7 @@ impl<'a> Context<'a, 'static> for &'a Props {
         setter.set(value)
     }
 
+    #[cfg(feature="debug")]
     fn send_debug_info(self, info: Vec<String>) {
         if let Some(sender) = &self.send_debug_info {
             sender.emit(info)
