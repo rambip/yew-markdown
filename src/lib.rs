@@ -232,7 +232,7 @@ impl<'a> Context<'a, 'static> for &'a Props {
         callback.emit(input)
     }
 
-    fn call_html_callback<T: 'static>(callback: &Self::HtmlCallback<T>, input: T) -> Self::View {
+    fn call_html_callback<T: 'static>(self, callback: &Self::HtmlCallback<T>, input: T) -> Self::View {
         callback.emit(input)
     }
 
