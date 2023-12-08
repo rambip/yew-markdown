@@ -39,6 +39,8 @@ see [here](https://rambip.github.io/yew-markdown/editor)
 ## Interactivity
 see [here](https://rambip.github.io/yew-markdown/onclick)
 
+## Custom Components
+see [here](https://rambip.github.io/yew-markdown/custom_components)
 
 # ROADMAP
 - implement note reference and image reference
