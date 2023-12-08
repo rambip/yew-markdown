@@ -3,15 +3,18 @@ use rust_web_markdown::{
     CowStr, 
 };
 
+
 use core::ops::Range;
 
 pub use rust_web_markdown::{
-    LinkDescription, MdComponentProps, Options,
+    LinkDescription, Options,
 };
 
 use yew::prelude::{
     function_component, html, AttrValue, Callback, Html, Properties, UseStateHandle,
 };
+
+pub type MdComponentProps = rust_web_markdown::MdComponentProps<Html>;
 
 use web_sys::{window, MouseEvent};
 
@@ -281,7 +284,7 @@ pub struct Props {
     pub parse_options: Option<Options>,
 
     #[prop_or_default]
-    pub components: HashMap<String, Callback<MdComponentProps<Html>, Html>>,
+    pub components: HashMap<String, Callback<MdComponentProps, Html>>,
 
     pub frontmatter: Option<UseStateHandle<String>>,
 
