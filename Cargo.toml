@@ -13,15 +13,12 @@ wasm-logger = "0.2.0"
 log= "0.4.17"
 
 rust-web-markdown = { git = "https://github.com/rambip/rust-web-markdown/" }
-web-sys = { version = "0.3.61", features = [] }
+web-sys = { version = "0.3", features = [] }
 
 [features]
 debug = ["rust-web-markdown/debug"]
 
 [workspace]
 members = [
-    "examples/editor/",
-    "examples/showcase/",
-    "examples/onclick/",
-    "examples/performance/",
+    "examples/*",
 ]
