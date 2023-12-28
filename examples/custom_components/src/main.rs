@@ -6,6 +6,8 @@ static MARKDOWN_SOURCE: &str = r#"
 ## Here are a few counters:
 <Counter initial="5"/>
 
+<Counter/>
+
 <Counter initial="a"/>
 
 ## Here is a Box:
