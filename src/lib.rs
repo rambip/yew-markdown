@@ -6,8 +6,10 @@ use rust_web_markdown::{
 
 use core::ops::Range;
 
+use std::collections::BTreeMap;
+
 pub use rust_web_markdown::{
-    LinkDescription, Options,
+    LinkDescription, Options, ComponentCreationError
 };
 
 use yew::prelude::{
@@ -17,8 +19,6 @@ use yew::prelude::{
 pub type MdComponentProps = rust_web_markdown::MdComponentProps<Html>;
 
 use web_sys::{window, MouseEvent};
-
-use std::collections::HashMap;
 
 
 #[derive(Clone, Debug)]
@@ -33,43 +33,61 @@ pub struct MarkdownMouseEvent {
     // pub tag: pulldown_cmark::Tag<'a>,
 }
 
+/// component store.
+/// It is called when therer is a `<CustomComponent>` inside the markdown source.
+/// It is basically a hashmap but more efficient for a small number of items
+#[derive(PartialEq, Clone)]
+pub struct CustomComponents(BTreeMap<&'static str, 
+                                   Callback<MdComponentProps, Result<Html, ComponentCreationError>>
+>);
+
+impl Default for CustomComponents {
+    fn default() -> Self {
+        Self (Default::default())
+    }
+}
+
+impl CustomComponents
+{
+    pub fn new() -> Self {
+        Self(Default::default())
+    }
+
+    /// register a new component.
+    /// The function `component` takes a context and props of type `MdComponentProps`
+    /// and returns html
+    pub fn register<F>(&mut self, name: &'static str, component: F)
+        where F: Fn(MdComponentProps) -> Result<Html, ComponentCreationError> + 'static,
+    {
+        self.0.insert(name, Callback::from(component));
+    }
+}
+
+
 impl<'a> Context<'a, 'static> for &'a Props {
     type View = Html;
 
-    type HtmlCallback<T: 'static> = Callback<T, Html>;
-
     type Handler<T: 'static> = Callback<T>;
-
-    type Setter<T: 'static> = UseStateHandle<T>;
 
     type MouseEvent = MouseEvent;
 
-    fn props(self) -> MarkdownProps<'a, 'static, Self> {
+    fn props(self) -> MarkdownProps<'a> {
         let Props {
-            render_links,
             theme,
             wikilinks,
             hard_line_breaks,
             parse_options,
-            components,
-            frontmatter,
             ..
         } = self;
 
         MarkdownProps {
-            render_links: render_links.as_ref(),
             theme: theme.as_deref(),
             wikilinks: *wikilinks,
             hard_line_breaks: *hard_line_breaks,
             parse_options: parse_options.as_ref(),
-            components: &components,
-            frontmatter: frontmatter.as_ref(),
         }
     }
 
-    fn set<T>(self, setter: &UseStateHandle<T>, value: T) {
-        setter.set(value)
-    }
 
     #[cfg(feature="debug")]
     fn send_debug_info(self, info: Vec<String>) {
@@ -232,17 +250,6 @@ impl<'a> Context<'a, 'static> for &'a Props {
         callback.emit(input)
     }
 
-    fn call_html_callback<T: 'static>(self, callback: &Self::HtmlCallback<T>, input: T) -> Self::View {
-        callback.emit(input)
-    }
-
-    fn make_handler<T: 'static, F: Fn(T) + 'static>(
-        self,
-        f: F,
-    ) -> Self::Handler<T> {
-        Callback::from(f)
-    }
-
     fn make_md_handler(self, position: Range<usize>, stop_propagation: bool) -> Self::Handler<MouseEvent> {
         match &self.onclick {
             Some(f) => {
@@ -261,6 +268,30 @@ impl<'a> Context<'a, 'static> for &'a Props {
             },
             None => Callback::noop(),
         }
+    }
+
+    fn has_custom_links(self) -> bool {
+        self.render_links.is_some()
+    }
+
+    fn render_links(self, link: LinkDescription<Html>) -> Result<Html, String> {
+        let f = self.render_links.clone().unwrap();
+        Ok(f.emit(link))
+    }
+
+    fn set_frontmatter(self, frontmatter: String) {
+        if let Some(setter) = &self.frontmatter {
+            setter.set(frontmatter)
+        }
+    }
+
+    fn has_custom_component(self, name: &str) -> bool {
+        self.components.0.get(name).is_some()
+    }
+
+    fn render_custom_component(self, name: &str, input: rust_web_markdown::MdComponentProps<Self::View>) -> Result<Self::View, ComponentCreationError> {
+        let f = self.components.0.get(name).unwrap();
+        f.emit(input)
     }
 
 }
@@ -284,7 +315,7 @@ pub struct Props {
     pub parse_options: Option<Options>,
 
     #[prop_or_default]
-    pub components: HashMap<String, Callback<MdComponentProps, Html>>,
+    pub components: CustomComponents,
 
     pub frontmatter: Option<UseStateHandle<String>>,
 
