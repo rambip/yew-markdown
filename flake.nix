@@ -102,6 +102,7 @@
                         pkg-config
                         trunk
                         rust-analyzer
+                        wasmBindgen
                     ];
                 };
             }
