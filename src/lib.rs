@@ -300,10 +300,13 @@ impl<'a> Context<'a, 'static> for &'a Props {
 pub struct Props {
     pub src: AttrValue,
 
+    #[prop_or_default]
     pub onclick: Option<Callback<MarkdownMouseEvent, ()>>,
 
+    #[prop_or_default]
     pub render_links: Option<Callback<LinkDescription<Html>, Html>>,
 
+    #[prop_or_default]
     pub theme: Option<String>,
 
     #[prop_or(false)]
@@ -312,13 +315,16 @@ pub struct Props {
     #[prop_or(false)]
     pub hard_line_breaks: bool,
 
+    #[prop_or_default]
     pub parse_options: Option<Options>,
 
     #[prop_or_default]
     pub components: CustomComponents,
 
+    #[prop_or_default]
     pub frontmatter: Option<UseStateHandle<String>>,
 
+    #[prop_or_default]
     pub send_debug_info: Option<Callback<Vec<String>>>,
 }
 
