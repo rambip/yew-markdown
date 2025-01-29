@@ -1,3 +1,9 @@
+# Disclaimer
+
+This project will move to **https://github.com/rambip/rust-web-markdown**
+
+ Be sure to check it out and to star the project !
+
 # Goal
 Creating a simple library to render markdown with yew.
 The best rust crates are involved !
