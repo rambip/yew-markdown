@@ -1,8 +1,11 @@
 # Disclaimer
 
-This project will move to **https://github.com/rambip/rust-web-markdown**
+This project is now archived, it moved to **https://github.com/rambip/rust-web-markdown**
 
- Be sure to check it out and to star the project !
+That was the bad news, the good news is that it is now published on crates.io !
+
+https://crates.io/crates/yew-markdown
+
 
 # Goal
 Creating a simple library to render markdown with yew.
